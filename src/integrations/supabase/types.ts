@@ -14,7 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      balances: {
+        Row: {
+          amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_cards: {
+        Row: {
+          bank_name: string
+          created_at: string
+          due_day: number
+          id: string
+          outstanding_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_name: string
+          created_at?: string
+          due_day: number
+          id?: string
+          outstanding_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_name?: string
+          created_at?: string
+          due_day?: number
+          id?: string
+          outstanding_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      insurance: {
+        Row: {
+          created_at: string
+          due_day: number
+          id: string
+          insurance_type: string
+          premium_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_day: number
+          id?: string
+          insurance_type: string
+          premium_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          due_day?: number
+          id?: string
+          insurance_type?: string
+          premium_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loans: {
+        Row: {
+          bank_name: string
+          created_at: string
+          due_day: number
+          emi_amount: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_name: string
+          created_at?: string
+          due_day: number
+          emi_amount: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_name?: string
+          created_at?: string
+          due_day?: number
+          emi_amount?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
