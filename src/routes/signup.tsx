@@ -42,6 +42,10 @@ function SignupPage() {
       toast.error("Password must be at least 6 characters.");
       return;
     }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
     setSubmitting(true);
     const redirectUrl = `${window.location.origin}/dashboard`;
     const { data, error } = await supabase.auth.signUp({
