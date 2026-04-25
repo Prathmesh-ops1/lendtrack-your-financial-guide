@@ -540,24 +540,59 @@ function Alert({
   tone,
   title,
   desc,
+  actionLabel,
+  onAction,
 }: {
   tone: "destructive" | "warning";
   title: string;
   desc: string;
+  actionLabel?: string;
+  onAction?: () => void;
 }) {
   const cls =
     tone === "destructive"
-      ? "border-destructive/30 bg-destructive/5 text-destructive"
-      : "border-warning/30 bg-warning/5 text-warning-foreground";
+      ? "border-destructive/30 bg-destructive/5"
+      : "border-warning/40 bg-warning/5";
   const Icon = tone === "destructive" ? AlertTriangle : Bell;
+  const iconCls = tone === "destructive" ? "text-destructive" : "text-warning";
   return (
-    <div className={`flex items-start gap-3 rounded-xl border p-4 shadow-card-soft ${cls}`}>
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      <div className="text-sm">
+    <div className={`flex flex-wrap items-start gap-3 rounded-xl border p-4 shadow-card-soft ${cls}`}>
+      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${iconCls}`} />
+      <div className="min-w-0 flex-1 text-sm">
         <div className="font-semibold text-foreground">{title}</div>
         <div className="text-muted-foreground">{desc}</div>
       </div>
+      {actionLabel && onAction && (
+        <Button
+          size="sm"
+          variant={tone === "destructive" ? "destructive" : "default"}
+          onClick={onAction}
+          className="gap-1"
+        >
+          {actionLabel} <ArrowRight className="h-3.5 w-3.5" />
+        </Button>
+      )}
     </div>
+  );
+}
+
+type StatusKind = "upcoming" | "due-soon" | "due-tomorrow" | "due-today" | "overdue" | "paid";
+
+function StatusBadge({ kind }: { kind: StatusKind }) {
+  const config: Record<StatusKind, { label: string; cls: string; icon?: typeof Flame }> = {
+    upcoming: { label: "Upcoming", cls: "bg-muted text-muted-foreground" },
+    "due-soon": { label: "Due Soon", cls: "bg-warning/20 text-warning-foreground" },
+    "due-tomorrow": { label: "Due Tomorrow", cls: "bg-destructive/15 text-destructive", icon: Flame },
+    "due-today": { label: "Due Today", cls: "bg-destructive text-destructive-foreground", icon: Flame },
+    overdue: { label: "Overdue", cls: "bg-destructive/15 text-destructive" },
+    paid: { label: "Paid ✔", cls: "bg-success/15 text-success" },
+  };
+  const { label, cls, icon: Icon } = config[kind];
+  return (
+    <Badge variant="secondary" className={`gap-1 ${cls}`}>
+      {Icon && <Icon className="h-3 w-3" />}
+      {label}
+    </Badge>
   );
 }
 
