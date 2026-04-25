@@ -96,9 +96,23 @@ function Dashboard() {
   );
 
   const dueSoon = useMemo(() => upcoming.filter((p) => p.daysUntil <= 5), [upcoming]);
+  const overdue = useMemo(() => upcoming.filter((p) => p.daysUntil < 0), [upcoming]);
   const dueSoonTotal = dueSoon.reduce((s, p) => s + p.amount, 0);
   const shortfall = Math.max(0, totalUpcoming - balance);
   const dueSoonShortfall = Math.max(0, dueSoonTotal - balance);
+
+  // Play alert sound once per session if anything is due in <=5 days
+  useEffect(() => {
+    if (loading || alertedRef.current) return;
+    if (dueSoon.length > 0) {
+      alertedRef.current = true;
+      playAlertSound();
+      toast.warning(
+        `${dueSoon.length} payment${dueSoon.length === 1 ? "" : "s"} due within 5 days`,
+        { description: `Total ${formatCurrency(dueSoonTotal)}` },
+      );
+    }
+  }, [loading, dueSoon.length, dueSoonTotal]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -113,6 +127,36 @@ function Dashboard() {
       return;
     }
     toast.success("Removed.");
+    loadAll();
+  }
+
+  async function handleMarkPaid(p: UpcomingPayment) {
+    if (!user) return;
+    const table = p.kind === "loan" ? "loans" : p.kind === "credit_card" ? "credit_cards" : "insurance";
+    const forMonth = monthKey(p.dueDate);
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { error: upErr } = await supabase
+      .from(table)
+      .update({ last_paid_date: today, last_paid_for_month: forMonth })
+      .eq("id", p.id);
+    if (upErr) {
+      toast.error(upErr.message);
+      return;
+    }
+
+    const { error: hErr } = await supabase.from("payment_history").insert({
+      user_id: user.id,
+      liability_kind: p.kind,
+      liability_id: p.id,
+      label: p.label,
+      amount: p.amount,
+      paid_date: today,
+      for_month: forMonth,
+    });
+    if (hErr) console.warn("History insert failed:", hErr.message);
+
+    toast.success(`${p.label} marked as paid. Next cycle will appear automatically.`);
     loadAll();
   }
 
