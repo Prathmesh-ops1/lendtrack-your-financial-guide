@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet } from "lucide-react";
+import { Eye, EyeOff, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
@@ -23,6 +23,9 @@ function SignupPage() {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -37,6 +40,10 @@ function SignupPage() {
     }
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
       return;
     }
     setSubmitting(true);
@@ -89,12 +96,15 @@ function SignupPage() {
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First name *</Label>
+                <Label htmlFor="firstName">
+                  First name <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="firstName"
                   type="text"
                   autoComplete="given-name"
                   required
+                  maxLength={20}
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
@@ -105,6 +115,7 @@ function SignupPage() {
                   id="lastName"
                   type="text"
                   autoComplete="family-name"
+                  maxLength={20}
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                 />
@@ -116,13 +127,14 @@ function SignupPage() {
                 id="mobile"
                 type="tel"
                 autoComplete="tel"
-                placeholder="Optional"
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">
+                Email <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -133,17 +145,55 @@ function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <Label htmlFor="password">
+                Password <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               <p className="text-xs text-muted-foreground">Minimum 6 characters.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">
+                Confirm password <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <Button
               type="submit"
