@@ -1,26 +1,30 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildUpcoming,
   formatCurrency,
   formatDate,
+  monthKey,
   type RawCard,
   type RawInsurance,
   type RawLoan,
   type UpcomingPayment,
 } from "@/lib/finance";
+import { playAlertSound } from "@/lib/alertSound";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddLiabilityDialog } from "@/components/AddLiabilityDialog";
 import { UpdateBalanceDialog } from "@/components/UpdateBalanceDialog";
+import { InsightsPanel } from "@/components/InsightsPanel";
 import { toast } from "sonner";
 import {
   AlertTriangle,
   Bell,
   Calendar,
+  CheckCircle2,
   CreditCard,
   HeartPulse,
   LogOut,
@@ -42,7 +46,9 @@ function Dashboard() {
   const [cards, setCards] = useState<RawCard[]>([]);
   const [insurance, setInsurance] = useState<RawInsurance[]>([]);
   const [balance, setBalance] = useState<number>(0);
+  const [firstName, setFirstName] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const alertedRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -51,22 +57,27 @@ function Dashboard() {
   const loadAll = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const [l, c, i, b] = await Promise.all([
-      supabase.from("loans").select("id, bank_name, emi_amount, due_day").order("due_day"),
+    const [l, c, i, b, p] = await Promise.all([
+      supabase
+        .from("loans")
+        .select("id, bank_name, emi_amount, due_day, last_paid_for_month")
+        .order("due_day"),
       supabase
         .from("credit_cards")
-        .select("id, bank_name, outstanding_amount, due_day")
+        .select("id, bank_name, outstanding_amount, due_day, last_paid_for_month")
         .order("due_day"),
       supabase
         .from("insurance")
-        .select("id, insurance_type, premium_amount, due_day")
+        .select("id, insurance_type, premium_amount, due_day, last_paid_for_month")
         .order("due_day"),
       supabase.from("balances").select("amount").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("first_name").eq("user_id", user.id).maybeSingle(),
     ]);
     if (l.data) setLoans(l.data as RawLoan[]);
     if (c.data) setCards(c.data as RawCard[]);
     if (i.data) setInsurance(i.data as RawInsurance[]);
     setBalance(Number(b.data?.amount ?? 0));
+    if (p.data?.first_name) setFirstName(p.data.first_name);
     setLoading(false);
   }, [user]);
 
