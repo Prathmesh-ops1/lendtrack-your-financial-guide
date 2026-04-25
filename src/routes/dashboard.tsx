@@ -22,10 +22,12 @@ import { InsightsPanel } from "@/components/InsightsPanel";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  ArrowRight,
   Bell,
   Calendar,
   CheckCircle2,
   CreditCard,
+  Flame,
   HeartPulse,
   LogOut,
   Trash2,
@@ -90,6 +92,35 @@ function Dashboard() {
     [loans, cards, insurance],
   );
 
+  // Paid items in the current cycle (so we can show them as "Paid ✔")
+  const paidThisCycle = useMemo(() => {
+    const today = new Date();
+    const currentKey = monthKey(today);
+    const items: Array<{
+      id: string;
+      kind: UpcomingPayment["kind"];
+      label: string;
+      amount: number;
+      forMonth: string;
+    }> = [];
+    for (const l of loans) {
+      if (l.last_paid_for_month && l.last_paid_for_month <= currentKey) {
+        items.push({ id: l.id, kind: "loan", label: `${l.bank_name} EMI`, amount: Number(l.emi_amount), forMonth: l.last_paid_for_month });
+      }
+    }
+    for (const c of cards) {
+      if (c.last_paid_for_month && c.last_paid_for_month <= currentKey) {
+        items.push({ id: c.id, kind: "credit_card", label: `${c.bank_name} Credit Card`, amount: Number(c.outstanding_amount), forMonth: c.last_paid_for_month });
+      }
+    }
+    for (const i of insurance) {
+      if (i.last_paid_for_month && i.last_paid_for_month <= currentKey) {
+        items.push({ id: i.id, kind: "insurance", label: `${i.insurance_type} Insurance`, amount: Number(i.premium_amount), forMonth: i.last_paid_for_month });
+      }
+    }
+    return items;
+  }, [loans, cards, insurance]);
+
   const totalUpcoming = useMemo(
     () => upcoming.reduce((s, p) => s + p.amount, 0),
     [upcoming],
@@ -100,6 +131,11 @@ function Dashboard() {
   const dueSoonTotal = dueSoon.reduce((s, p) => s + p.amount, 0);
   const shortfall = Math.max(0, totalUpcoming - balance);
   const dueSoonShortfall = Math.max(0, dueSoonTotal - balance);
+
+  function scrollToUpcoming() {
+    const el = document.getElementById("upcoming-payments");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   // Play alert sound once per session if anything is due in <=5 days
   useEffect(() => {
@@ -249,51 +285,62 @@ function Dashboard() {
                     key={`overdue-${p.id}`}
                     tone="destructive"
                     title={`${p.label} is overdue — ${formatCurrency(p.amount)}`}
-                    desc={`Was due on ${formatDate(p.dueDate)}. Mark as paid below to roll to the next cycle.`}
+                    desc={`This payment was due on ${formatDate(p.dueDate)} (${Math.abs(p.daysUntil)} day${Math.abs(p.daysUntil) === 1 ? "" : "s"} ago). Mark it as paid below to roll forward to next month's cycle.`}
+                    actionLabel="Mark as Paid"
+                    onAction={() => handleMarkPaid(p)}
                   />
                 ))}
 
                 {dueSoonShortfall > 0 && (
                   <Alert
                     tone="destructive"
-                    title="Shortfall in next 5 days"
-                    desc={`Payments of ${formatCurrency(dueSoonTotal)} are due within 5 days, but your balance is only ${formatCurrency(balance)}. You're short by ${formatCurrency(dueSoonShortfall)}.`}
+                    title="Your balance won't cover the next 5 days"
+                    desc={`Your upcoming payments (${formatCurrency(dueSoonTotal)}) exceed your current balance (${formatCurrency(balance)}) by ${formatCurrency(dueSoonShortfall)}. Top up your balance or plan which EMIs to prioritise.`}
+                    actionLabel="Plan Payment"
+                    onAction={scrollToUpcoming}
                   />
                 )}
 
                 {dueSoon
                   .filter((p) => p.daysUntil >= 0)
-                  .map((p) => (
-                    <Alert
-                      key={`reminder-${p.id}`}
-                      tone="warning"
-                      title={`${p.label} — ${formatCurrency(p.amount)} due ${
-                        p.daysUntil === 0
-                          ? "today"
-                          : p.daysUntil === 1
-                            ? "tomorrow"
-                            : `in ${p.daysUntil} days`
-                      }`}
-                      desc={`Due on ${formatDate(p.dueDate)}.`}
-                    />
-                  ))}
+                  .map((p) => {
+                    const urgent = p.daysUntil <= 1;
+                    const whenLabel =
+                      p.daysUntil === 0
+                        ? "today"
+                        : p.daysUntil === 1
+                          ? "tomorrow"
+                          : `in ${p.daysUntil} days`;
+                    return (
+                      <Alert
+                        key={`reminder-${p.id}`}
+                        tone={urgent ? "destructive" : "warning"}
+                        title={`${p.label} — ${formatCurrency(p.amount)} due ${whenLabel}`}
+                        desc={`Scheduled for ${formatDate(p.dueDate)}. Mark it paid once cleared so it doesn't trigger another alert.`}
+                        actionLabel="Mark as Paid"
+                        onAction={() => handleMarkPaid(p)}
+                      />
+                    );
+                  })}
 
                 {dueSoon.length === 0 && shortfall > 0 && (
                   <Alert
                     tone="warning"
-                    title="Cycle shortfall"
-                    desc={`Your total upcoming liabilities exceed your balance by ${formatCurrency(shortfall)}.`}
+                    title="This cycle's total exceeds your balance"
+                    desc={`Your upcoming payments (${formatCurrency(totalUpcoming)}) exceed your current balance (${formatCurrency(balance)}) by ${formatCurrency(shortfall)}. Nothing is urgent yet, but plan ahead.`}
+                    actionLabel="View Details"
+                    onAction={scrollToUpcoming}
                   />
                 )}
               </div>
             </section>
 
             {/* Upcoming list */}
-            <section>
+            <section id="upcoming-payments">
               <h2 className="mb-3 font-display text-lg font-semibold">Upcoming payments</h2>
               <Card className="shadow-card-soft">
                 <CardContent className="p-0">
-                  {upcoming.length === 0 ? (
+                  {upcoming.length === 0 && paidThisCycle.length === 0 ? (
                     <div className="p-6 text-center text-sm text-muted-foreground">
                       No liabilities tracked yet. Add a loan, credit card, or insurance below.
                     </div>
@@ -301,64 +348,102 @@ function Dashboard() {
                     <ul className="divide-y divide-border">
                       {upcoming.map((p) => {
                         const isOverdue = p.daysUntil < 0;
+                        const isUrgent = p.daysUntil >= 0 && p.daysUntil <= 1;
                         const isDueSoon = p.daysUntil >= 0 && p.daysUntil <= 5;
+                        const rowCls = isOverdue || isUrgent
+                          ? "border-l-4 border-l-destructive bg-destructive/5"
+                          : isDueSoon
+                            ? "border-l-4 border-l-warning bg-warning/5"
+                            : "";
+                        const whenText = isOverdue
+                          ? `overdue by ${Math.abs(p.daysUntil)} day${Math.abs(p.daysUntil) === 1 ? "" : "s"}`
+                          : p.daysUntil === 0
+                            ? "due today"
+                            : p.daysUntil === 1
+                              ? "due tomorrow"
+                              : `in ${p.daysUntil} days`;
                         return (
                           <li
                             key={`${p.kind}-${p.id}`}
-                            className="flex flex-wrap items-center justify-between gap-3 p-4"
+                            className={`flex flex-wrap items-center justify-between gap-3 p-4 ${rowCls}`}
                           >
                             <div className="flex min-w-0 items-center gap-3">
                               <KindIcon kind={p.kind} />
                               <div className="min-w-0">
                                 <div className="truncate font-medium">{p.label}</div>
                                 <div className="text-xs text-muted-foreground">
-                                  {formatDate(p.dueDate)} •{" "}
-                                  {isOverdue
-                                    ? `overdue by ${Math.abs(p.daysUntil)} day${Math.abs(p.daysUntil) === 1 ? "" : "s"}`
-                                    : p.daysUntil === 0
-                                      ? "due today"
-                                      : p.daysUntil === 1
-                                        ? "in 1 day"
-                                        : `in ${p.daysUntil} days`}
+                                  {formatDate(p.dueDate)} • {whenText}
                                 </div>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {isOverdue && (
-                                <Badge variant="secondary" className="bg-destructive/15 text-destructive">
-                                  Overdue
-                                </Badge>
-                              )}
-                              {isDueSoon && (
-                                <Badge variant="secondary" className="bg-warning/15 text-warning-foreground">
-                                  Due soon
-                                </Badge>
-                              )}
+                              <StatusBadge
+                                kind={
+                                  isOverdue
+                                    ? "overdue"
+                                    : p.daysUntil === 0
+                                      ? "due-today"
+                                      : p.daysUntil === 1
+                                        ? "due-tomorrow"
+                                        : isDueSoon
+                                          ? "due-soon"
+                                          : "upcoming"
+                                }
+                              />
                               <span className="font-semibold tabular-nums">
                                 {formatCurrency(p.amount)}
                               </span>
-                              {(isOverdue || isDueSoon) && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleMarkPaid(p)}
-                                  className="gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
-                                >
-                                  <CheckCircle2 className="h-4 w-4" /> Mark paid
-                                </Button>
-                              )}
                               <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => handleDelete(p.kind, p.id)}
-                                aria-label="Delete"
+                                size="sm"
+                                variant={isOverdue || isUrgent ? "default" : "outline"}
+                                onClick={() => handleMarkPaid(p)}
+                                className={
+                                  isOverdue || isUrgent
+                                    ? "gap-1 bg-success text-success-foreground hover:bg-success/90"
+                                    : "gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
+                                }
                               >
-                                <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                <CheckCircle2 className="h-4 w-4" /> Mark as Paid
                               </Button>
                             </div>
                           </li>
                         );
                       })}
+
+                      {paidThisCycle.map((p) => (
+                        <li
+                          key={`paid-${p.kind}-${p.id}`}
+                          className="flex flex-wrap items-center justify-between gap-3 bg-muted/30 p-4 opacity-70"
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
+                            <KindIcon kind={p.kind} />
+                            <div className="min-w-0">
+                              <div className="truncate font-medium line-through decoration-success/60">
+                                {p.label}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Paid for {new Date(p.forMonth).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <StatusBadge kind="paid" />
+                            <span className="font-semibold tabular-nums text-muted-foreground">
+                              {formatCurrency(p.amount)}
+                            </span>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleDelete(p.kind, p.id)}
+                              aria-label="Remove tracked liability"
+                              title="Stop tracking this liability"
+                              className="opacity-50 hover:opacity-100"
+                            >
+                              <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
                     </ul>
                   )}
                 </CardContent>
@@ -455,24 +540,59 @@ function Alert({
   tone,
   title,
   desc,
+  actionLabel,
+  onAction,
 }: {
   tone: "destructive" | "warning";
   title: string;
   desc: string;
+  actionLabel?: string;
+  onAction?: () => void;
 }) {
   const cls =
     tone === "destructive"
-      ? "border-destructive/30 bg-destructive/5 text-destructive"
-      : "border-warning/30 bg-warning/5 text-warning-foreground";
+      ? "border-destructive/30 bg-destructive/5"
+      : "border-warning/40 bg-warning/5";
   const Icon = tone === "destructive" ? AlertTriangle : Bell;
+  const iconCls = tone === "destructive" ? "text-destructive" : "text-warning";
   return (
-    <div className={`flex items-start gap-3 rounded-xl border p-4 shadow-card-soft ${cls}`}>
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      <div className="text-sm">
+    <div className={`flex flex-wrap items-start gap-3 rounded-xl border p-4 shadow-card-soft ${cls}`}>
+      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${iconCls}`} />
+      <div className="min-w-0 flex-1 text-sm">
         <div className="font-semibold text-foreground">{title}</div>
         <div className="text-muted-foreground">{desc}</div>
       </div>
+      {actionLabel && onAction && (
+        <Button
+          size="sm"
+          variant={tone === "destructive" ? "destructive" : "default"}
+          onClick={onAction}
+          className="gap-1"
+        >
+          {actionLabel} <ArrowRight className="h-3.5 w-3.5" />
+        </Button>
+      )}
     </div>
+  );
+}
+
+type StatusKind = "upcoming" | "due-soon" | "due-tomorrow" | "due-today" | "overdue" | "paid";
+
+function StatusBadge({ kind }: { kind: StatusKind }) {
+  const config: Record<StatusKind, { label: string; cls: string; icon?: typeof Flame }> = {
+    upcoming: { label: "Upcoming", cls: "bg-muted text-muted-foreground" },
+    "due-soon": { label: "Due Soon", cls: "bg-warning/20 text-warning-foreground" },
+    "due-tomorrow": { label: "Due Tomorrow", cls: "bg-destructive/15 text-destructive", icon: Flame },
+    "due-today": { label: "Due Today", cls: "bg-destructive text-destructive-foreground", icon: Flame },
+    overdue: { label: "Overdue", cls: "bg-destructive/15 text-destructive" },
+    paid: { label: "Paid ✔", cls: "bg-success/15 text-success" },
+  };
+  const { label, cls, icon: Icon } = config[kind];
+  return (
+    <Badge variant="secondary" className={`gap-1 ${cls}`}>
+      {Icon && <Icon className="h-3 w-3" />}
+      {label}
+    </Badge>
   );
 }
 

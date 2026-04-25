@@ -38,9 +38,14 @@ export function InsightsPanel() {
         </div>
       </div>
       <CardContent className="space-y-3 p-5">
-        <Badge variant="secondary" className="bg-gold/20 text-gold-foreground">
-          {insight.tag}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" className="bg-gold/20 text-gold-foreground">
+            {insight.tag}
+          </Badge>
+          <Badge variant="secondary" className="bg-success/15 text-success">
+            {insight.savings}
+          </Badge>
+        </div>
         <h3 className="font-display text-base font-bold leading-snug">{insight.title}</h3>
         <p className="text-sm text-muted-foreground">{insight.body}</p>
         <Button
