@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wallet } from "lucide-react";
+import { Eye, EyeOff, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
