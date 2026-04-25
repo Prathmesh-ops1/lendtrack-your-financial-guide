@@ -38,6 +38,8 @@ export type Database = {
           created_at: string
           due_day: number
           id: string
+          last_paid_date: string | null
+          last_paid_for_month: string | null
           outstanding_amount: number
           updated_at: string
           user_id: string
@@ -47,6 +49,8 @@ export type Database = {
           created_at?: string
           due_day: number
           id?: string
+          last_paid_date?: string | null
+          last_paid_for_month?: string | null
           outstanding_amount: number
           updated_at?: string
           user_id: string
@@ -56,6 +60,8 @@ export type Database = {
           created_at?: string
           due_day?: number
           id?: string
+          last_paid_date?: string | null
+          last_paid_for_month?: string | null
           outstanding_amount?: number
           updated_at?: string
           user_id?: string
@@ -68,6 +74,8 @@ export type Database = {
           due_day: number
           id: string
           insurance_type: string
+          last_paid_date: string | null
+          last_paid_for_month: string | null
           premium_amount: number
           updated_at: string
           user_id: string
@@ -77,6 +85,8 @@ export type Database = {
           due_day: number
           id?: string
           insurance_type: string
+          last_paid_date?: string | null
+          last_paid_for_month?: string | null
           premium_amount: number
           updated_at?: string
           user_id: string
@@ -86,6 +96,8 @@ export type Database = {
           due_day?: number
           id?: string
           insurance_type?: string
+          last_paid_date?: string | null
+          last_paid_for_month?: string | null
           premium_amount?: number
           updated_at?: string
           user_id?: string
@@ -99,6 +111,8 @@ export type Database = {
           due_day: number
           emi_amount: number
           id: string
+          last_paid_date: string | null
+          last_paid_for_month: string | null
           updated_at: string
           user_id: string
         }
@@ -108,6 +122,8 @@ export type Database = {
           due_day: number
           emi_amount: number
           id?: string
+          last_paid_date?: string | null
+          last_paid_for_month?: string | null
           updated_at?: string
           user_id: string
         }
@@ -117,6 +133,71 @@ export type Database = {
           due_day?: number
           emi_amount?: number
           id?: string
+          last_paid_date?: string | null
+          last_paid_for_month?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payment_history: {
+        Row: {
+          amount: number
+          created_at: string
+          for_month: string
+          id: string
+          label: string
+          liability_id: string
+          liability_kind: string
+          paid_date: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          for_month: string
+          id?: string
+          label: string
+          liability_id: string
+          liability_kind: string
+          paid_date?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          for_month?: string
+          id?: string
+          label?: string
+          liability_id?: string
+          liability_kind?: string
+          paid_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          last_name: string | null
+          mobile: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          last_name?: string | null
+          mobile?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          last_name?: string | null
+          mobile?: string | null
           updated_at?: string
           user_id?: string
         }

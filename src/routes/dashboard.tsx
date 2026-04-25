@@ -1,26 +1,30 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildUpcoming,
   formatCurrency,
   formatDate,
+  monthKey,
   type RawCard,
   type RawInsurance,
   type RawLoan,
   type UpcomingPayment,
 } from "@/lib/finance";
+import { playAlertSound } from "@/lib/alertSound";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddLiabilityDialog } from "@/components/AddLiabilityDialog";
 import { UpdateBalanceDialog } from "@/components/UpdateBalanceDialog";
+import { InsightsPanel } from "@/components/InsightsPanel";
 import { toast } from "sonner";
 import {
   AlertTriangle,
   Bell,
   Calendar,
+  CheckCircle2,
   CreditCard,
   HeartPulse,
   LogOut,
@@ -42,7 +46,9 @@ function Dashboard() {
   const [cards, setCards] = useState<RawCard[]>([]);
   const [insurance, setInsurance] = useState<RawInsurance[]>([]);
   const [balance, setBalance] = useState<number>(0);
+  const [firstName, setFirstName] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const alertedRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -51,22 +57,27 @@ function Dashboard() {
   const loadAll = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const [l, c, i, b] = await Promise.all([
-      supabase.from("loans").select("id, bank_name, emi_amount, due_day").order("due_day"),
+    const [l, c, i, b, p] = await Promise.all([
+      supabase
+        .from("loans")
+        .select("id, bank_name, emi_amount, due_day, last_paid_for_month")
+        .order("due_day"),
       supabase
         .from("credit_cards")
-        .select("id, bank_name, outstanding_amount, due_day")
+        .select("id, bank_name, outstanding_amount, due_day, last_paid_for_month")
         .order("due_day"),
       supabase
         .from("insurance")
-        .select("id, insurance_type, premium_amount, due_day")
+        .select("id, insurance_type, premium_amount, due_day, last_paid_for_month")
         .order("due_day"),
       supabase.from("balances").select("amount").eq("user_id", user.id).maybeSingle(),
+      supabase.from("profiles").select("first_name").eq("user_id", user.id).maybeSingle(),
     ]);
     if (l.data) setLoans(l.data as RawLoan[]);
     if (c.data) setCards(c.data as RawCard[]);
     if (i.data) setInsurance(i.data as RawInsurance[]);
     setBalance(Number(b.data?.amount ?? 0));
+    if (p.data?.first_name) setFirstName(p.data.first_name);
     setLoading(false);
   }, [user]);
 
@@ -85,9 +96,23 @@ function Dashboard() {
   );
 
   const dueSoon = useMemo(() => upcoming.filter((p) => p.daysUntil <= 5), [upcoming]);
+  const overdue = useMemo(() => upcoming.filter((p) => p.daysUntil < 0), [upcoming]);
   const dueSoonTotal = dueSoon.reduce((s, p) => s + p.amount, 0);
   const shortfall = Math.max(0, totalUpcoming - balance);
   const dueSoonShortfall = Math.max(0, dueSoonTotal - balance);
+
+  // Play alert sound once per session if anything is due in <=5 days
+  useEffect(() => {
+    if (loading || alertedRef.current) return;
+    if (dueSoon.length > 0) {
+      alertedRef.current = true;
+      playAlertSound();
+      toast.warning(
+        `${dueSoon.length} payment${dueSoon.length === 1 ? "" : "s"} due within 5 days`,
+        { description: `Total ${formatCurrency(dueSoonTotal)}` },
+      );
+    }
+  }, [loading, dueSoon.length, dueSoonTotal]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -102,6 +127,36 @@ function Dashboard() {
       return;
     }
     toast.success("Removed.");
+    loadAll();
+  }
+
+  async function handleMarkPaid(p: UpcomingPayment) {
+    if (!user) return;
+    const table = p.kind === "loan" ? "loans" : p.kind === "credit_card" ? "credit_cards" : "insurance";
+    const forMonth = monthKey(p.dueDate);
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { error: upErr } = await supabase
+      .from(table)
+      .update({ last_paid_date: today, last_paid_for_month: forMonth })
+      .eq("id", p.id);
+    if (upErr) {
+      toast.error(upErr.message);
+      return;
+    }
+
+    const { error: hErr } = await supabase.from("payment_history").insert({
+      user_id: user.id,
+      liability_kind: p.kind,
+      liability_id: p.id,
+      label: p.label,
+      amount: p.amount,
+      paid_date: today,
+      for_month: forMonth,
+    });
+    if (hErr) console.warn("History insert failed:", hErr.message);
+
+    toast.success(`${p.label} marked as paid. Next cycle will appear automatically.`);
     loadAll();
   }
 
@@ -133,176 +188,217 @@ function Dashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold sm:text-3xl">Your dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              {loading ? "Loading…" : "An overview of your liabilities and balance."}
-            </p>
-          </div>
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">
+            {firstName ? `Welcome, ${firstName}` : "Your dashboard"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {loading ? "Loading…" : "An overview of your liabilities and balance."}
+          </p>
         </div>
 
-        {/* Stat cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard
-            label="Current balance"
-            value={formatCurrency(balance)}
-            icon={Wallet}
-            tone="primary"
-            action={
-              <UpdateBalanceDialog userId={user.id} currentBalance={balance} onSaved={loadAll} />
-            }
-          />
-          <StatCard
-            label="Total upcoming payments"
-            value={formatCurrency(totalUpcoming)}
-            sub={`${upcoming.length} item${upcoming.length === 1 ? "" : "s"} this cycle`}
-            icon={Calendar}
-            tone="gold"
-          />
-          <StatCard
-            label={shortfall > 0 ? "Potential shortfall" : "All covered"}
-            value={shortfall > 0 ? formatCurrency(shortfall) : formatCurrency(0)}
-            sub={
-              shortfall > 0
-                ? "Upcoming exceeds balance"
-                : "Balance covers upcoming payments"
-            }
-            icon={shortfall > 0 ? TrendingDown : Wallet}
-            tone={shortfall > 0 ? "destructive" : "success"}
-          />
-        </div>
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+          <div className="min-w-0 space-y-8">
+            {/* Stat cards */}
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <StatCard
+                label="Current balance"
+                value={formatCurrency(balance)}
+                icon={Wallet}
+                tone="primary"
+                action={
+                  <UpdateBalanceDialog userId={user.id} currentBalance={balance} onSaved={loadAll} />
+                }
+              />
+              <StatCard
+                label="Total upcoming payments"
+                value={formatCurrency(totalUpcoming)}
+                sub={`${upcoming.length} item${upcoming.length === 1 ? "" : "s"} this cycle`}
+                icon={Calendar}
+                tone="gold"
+              />
+              <StatCard
+                label={shortfall > 0 ? "Potential shortfall" : "All covered"}
+                value={shortfall > 0 ? formatCurrency(shortfall) : formatCurrency(0)}
+                sub={
+                  shortfall > 0
+                    ? "Upcoming exceeds balance"
+                    : "Balance covers upcoming payments"
+                }
+                icon={shortfall > 0 ? TrendingDown : Wallet}
+                tone={shortfall > 0 ? "destructive" : "success"}
+              />
+            </div>
 
-        {/* Alerts */}
-        <section className="mt-8">
-          <div className="mb-3 flex items-center gap-2">
-            <Bell className="h-4 w-4 text-primary" />
-            <h2 className="font-display text-lg font-semibold">Alerts</h2>
-          </div>
-          <div className="space-y-2">
-            {dueSoon.length === 0 && shortfall === 0 && (
-              <div className="rounded-xl border border-border/60 bg-card p-4 text-sm text-muted-foreground shadow-card-soft">
-                You're all set — no urgent alerts.
+            {/* Alerts */}
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <h2 className="font-display text-lg font-semibold">Alerts</h2>
               </div>
-            )}
+              <div className="space-y-2">
+                {dueSoon.length === 0 && shortfall === 0 && overdue.length === 0 && (
+                  <div className="rounded-xl border border-border/60 bg-card p-4 text-sm text-muted-foreground shadow-card-soft">
+                    You're all set — no urgent alerts.
+                  </div>
+                )}
 
-            {dueSoonShortfall > 0 && (
-              <Alert
-                tone="destructive"
-                title="Shortfall in next 5 days"
-                desc={`Payments of ${formatCurrency(dueSoonTotal)} are due within 5 days, but your balance is only ${formatCurrency(balance)}. You're short by ${formatCurrency(dueSoonShortfall)}.`}
-              />
-            )}
+                {overdue.map((p) => (
+                  <Alert
+                    key={`overdue-${p.id}`}
+                    tone="destructive"
+                    title={`${p.label} is overdue — ${formatCurrency(p.amount)}`}
+                    desc={`Was due on ${formatDate(p.dueDate)}. Mark as paid below to roll to the next cycle.`}
+                  />
+                ))}
 
-            {dueSoon.map((p) => (
-              <Alert
-                key={`reminder-${p.id}`}
-                tone="warning"
-                title={`${p.label} — ${formatCurrency(p.amount)} due ${
-                  p.daysUntil <= 0
-                    ? "today"
-                    : p.daysUntil === 1
-                      ? "tomorrow"
-                      : `in ${p.daysUntil} days`
-                }`}
-                desc={`Due on ${formatDate(p.dueDate)}.`}
-              />
-            ))}
+                {dueSoonShortfall > 0 && (
+                  <Alert
+                    tone="destructive"
+                    title="Shortfall in next 5 days"
+                    desc={`Payments of ${formatCurrency(dueSoonTotal)} are due within 5 days, but your balance is only ${formatCurrency(balance)}. You're short by ${formatCurrency(dueSoonShortfall)}.`}
+                  />
+                )}
 
-            {dueSoon.length === 0 && shortfall > 0 && (
-              <Alert
-                tone="warning"
-                title="Cycle shortfall"
-                desc={`Your total upcoming liabilities exceed your balance by ${formatCurrency(shortfall)}.`}
-              />
-            )}
-          </div>
-        </section>
-
-        {/* Upcoming list */}
-        <section className="mt-8">
-          <h2 className="mb-3 font-display text-lg font-semibold">Upcoming payments</h2>
-          <Card className="shadow-card-soft">
-            <CardContent className="p-0">
-              {upcoming.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">
-                  No liabilities tracked yet. Add a loan, credit card, or insurance below.
-                </div>
-              ) : (
-                <ul className="divide-y divide-border">
-                  {upcoming.map((p) => (
-                    <li
-                      key={`${p.kind}-${p.id}`}
-                      className="flex items-center justify-between gap-3 p-4"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <KindIcon kind={p.kind} />
-                        <div className="min-w-0">
-                          <div className="truncate font-medium">{p.label}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatDate(p.dueDate)} •{" "}
-                            {p.daysUntil <= 0
-                              ? "due today"
-                              : p.daysUntil === 1
-                                ? "in 1 day"
-                                : `in ${p.daysUntil} days`}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {p.daysUntil <= 5 && (
-                          <Badge variant="secondary" className="bg-warning/15 text-warning-foreground">
-                            Due soon
-                          </Badge>
-                        )}
-                        <span className="font-semibold tabular-nums">
-                          {formatCurrency(p.amount)}
-                        </span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleDelete(p.kind, p.id)}
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </div>
-                    </li>
+                {dueSoon
+                  .filter((p) => p.daysUntil >= 0)
+                  .map((p) => (
+                    <Alert
+                      key={`reminder-${p.id}`}
+                      tone="warning"
+                      title={`${p.label} — ${formatCurrency(p.amount)} due ${
+                        p.daysUntil === 0
+                          ? "today"
+                          : p.daysUntil === 1
+                            ? "tomorrow"
+                            : `in ${p.daysUntil} days`
+                      }`}
+                      desc={`Due on ${formatDate(p.dueDate)}.`}
+                    />
                   ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </section>
 
-        {/* Add forms */}
-        <section className="mt-8 grid gap-4 sm:grid-cols-3">
-          <ManageCard
-            kind="loan"
-            title="Loans / EMIs"
-            icon={Wallet}
-            count={loans.length}
-            userId={user.id}
-            onSaved={loadAll}
-          />
-          <ManageCard
-            kind="credit_card"
-            title="Credit cards"
-            icon={CreditCard}
-            count={cards.length}
-            userId={user.id}
-            onSaved={loadAll}
-          />
-          <ManageCard
-            kind="insurance"
-            title="Insurance"
-            icon={HeartPulse}
-            count={insurance.length}
-            userId={user.id}
-            onSaved={loadAll}
-          />
-        </section>
+                {dueSoon.length === 0 && shortfall > 0 && (
+                  <Alert
+                    tone="warning"
+                    title="Cycle shortfall"
+                    desc={`Your total upcoming liabilities exceed your balance by ${formatCurrency(shortfall)}.`}
+                  />
+                )}
+              </div>
+            </section>
+
+            {/* Upcoming list */}
+            <section>
+              <h2 className="mb-3 font-display text-lg font-semibold">Upcoming payments</h2>
+              <Card className="shadow-card-soft">
+                <CardContent className="p-0">
+                  {upcoming.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      No liabilities tracked yet. Add a loan, credit card, or insurance below.
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-border">
+                      {upcoming.map((p) => {
+                        const isOverdue = p.daysUntil < 0;
+                        const isDueSoon = p.daysUntil >= 0 && p.daysUntil <= 5;
+                        return (
+                          <li
+                            key={`${p.kind}-${p.id}`}
+                            className="flex flex-wrap items-center justify-between gap-3 p-4"
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
+                              <KindIcon kind={p.kind} />
+                              <div className="min-w-0">
+                                <div className="truncate font-medium">{p.label}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {formatDate(p.dueDate)} •{" "}
+                                  {isOverdue
+                                    ? `overdue by ${Math.abs(p.daysUntil)} day${Math.abs(p.daysUntil) === 1 ? "" : "s"}`
+                                    : p.daysUntil === 0
+                                      ? "due today"
+                                      : p.daysUntil === 1
+                                        ? "in 1 day"
+                                        : `in ${p.daysUntil} days`}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isOverdue && (
+                                <Badge variant="secondary" className="bg-destructive/15 text-destructive">
+                                  Overdue
+                                </Badge>
+                              )}
+                              {isDueSoon && (
+                                <Badge variant="secondary" className="bg-warning/15 text-warning-foreground">
+                                  Due soon
+                                </Badge>
+                              )}
+                              <span className="font-semibold tabular-nums">
+                                {formatCurrency(p.amount)}
+                              </span>
+                              {(isOverdue || isDueSoon) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleMarkPaid(p)}
+                                  className="gap-1 border-success/40 text-success hover:bg-success/10 hover:text-success"
+                                >
+                                  <CheckCircle2 className="h-4 w-4" /> Mark paid
+                                </Button>
+                              )}
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleDelete(p.kind, p.id)}
+                                aria-label="Delete"
+                              >
+                                <Trash2 className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Add forms */}
+            <section className="grid gap-4 sm:grid-cols-3">
+              <ManageCard
+                kind="loan"
+                title="Loans / EMIs"
+                icon={Wallet}
+                count={loans.length}
+                userId={user.id}
+                onSaved={loadAll}
+              />
+              <ManageCard
+                kind="credit_card"
+                title="Credit cards"
+                icon={CreditCard}
+                count={cards.length}
+                userId={user.id}
+                onSaved={loadAll}
+              />
+              <ManageCard
+                kind="insurance"
+                title="Insurance"
+                icon={HeartPulse}
+                count={insurance.length}
+                userId={user.id}
+                onSaved={loadAll}
+              />
+            </section>
+          </div>
+
+          {/* Right side: insights */}
+          <aside className="lg:sticky lg:top-6 lg:self-start">
+            <InsightsPanel />
+          </aside>
+        </div>
 
         <footer className="mt-12 pb-8 text-center text-xs text-muted-foreground">
           LendTrack • Your liabilities, in one place.
