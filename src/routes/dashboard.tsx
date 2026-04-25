@@ -92,6 +92,35 @@ function Dashboard() {
     [loans, cards, insurance],
   );
 
+  // Paid items in the current cycle (so we can show them as "Paid ✔")
+  const paidThisCycle = useMemo(() => {
+    const today = new Date();
+    const currentKey = monthKey(today);
+    const items: Array<{
+      id: string;
+      kind: UpcomingPayment["kind"];
+      label: string;
+      amount: number;
+      forMonth: string;
+    }> = [];
+    for (const l of loans) {
+      if (l.last_paid_for_month && l.last_paid_for_month <= currentKey) {
+        items.push({ id: l.id, kind: "loan", label: `${l.bank_name} EMI`, amount: Number(l.emi_amount), forMonth: l.last_paid_for_month });
+      }
+    }
+    for (const c of cards) {
+      if (c.last_paid_for_month && c.last_paid_for_month <= currentKey) {
+        items.push({ id: c.id, kind: "credit_card", label: `${c.bank_name} Credit Card`, amount: Number(c.outstanding_amount), forMonth: c.last_paid_for_month });
+      }
+    }
+    for (const i of insurance) {
+      if (i.last_paid_for_month && i.last_paid_for_month <= currentKey) {
+        items.push({ id: i.id, kind: "insurance", label: `${i.insurance_type} Insurance`, amount: Number(i.premium_amount), forMonth: i.last_paid_for_month });
+      }
+    }
+    return items;
+  }, [loans, cards, insurance]);
+
   const totalUpcoming = useMemo(
     () => upcoming.reduce((s, p) => s + p.amount, 0),
     [upcoming],
@@ -102,6 +131,11 @@ function Dashboard() {
   const dueSoonTotal = dueSoon.reduce((s, p) => s + p.amount, 0);
   const shortfall = Math.max(0, totalUpcoming - balance);
   const dueSoonShortfall = Math.max(0, dueSoonTotal - balance);
+
+  function scrollToUpcoming() {
+    const el = document.getElementById("upcoming-payments");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   // Play alert sound once per session if anything is due in <=5 days
   useEffect(() => {
