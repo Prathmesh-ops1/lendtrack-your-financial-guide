@@ -40,9 +40,36 @@ export function daysBetween(a: Date, b: Date): number {
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
-export interface RawLoan { id: string; bank_name: string; emi_amount: number; due_day: number }
-export interface RawCard { id: string; bank_name: string; outstanding_amount: number; due_day: number }
-export interface RawInsurance { id: string; insurance_type: string; premium_amount: number; due_day: number }
+export interface RawLoan { id: string; bank_name: string; emi_amount: number; due_day: number; last_paid_for_month?: string | null }
+export interface RawCard { id: string; bank_name: string; outstanding_amount: number; due_day: number; last_paid_for_month?: string | null }
+export interface RawInsurance { id: string; insurance_type: string; premium_amount: number; due_day: number; last_paid_for_month?: string | null }
+
+/**
+ * Returns the "for_month" key (YYYY-MM-01) representing the cycle a given due date belongs to.
+ */
+export function monthKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}-01`;
+}
+
+/**
+ * Compute the active due date for a recurring liability, taking into account
+ * what cycle was last paid. If the current cycle is paid, roll forward.
+ */
+export function activeDueDate(
+  dueDay: number,
+  lastPaidForMonth: string | null | undefined,
+  from: Date = new Date(),
+): Date {
+  const due = nextDueDate(dueDay, from);
+  if (lastPaidForMonth && monthKey(due) === lastPaidForMonth) {
+    // Current cycle paid — roll to next month
+    const nextMonthFrom = new Date(due.getFullYear(), due.getMonth() + 1, 1);
+    return nextDueDate(dueDay, nextMonthFrom);
+  }
+  return due;
+}
 
 export function buildUpcoming(
   loans: RawLoan[],
@@ -53,7 +80,7 @@ export function buildUpcoming(
   const items: UpcomingPayment[] = [];
 
   for (const l of loans) {
-    const due = nextDueDate(l.due_day, from);
+    const due = activeDueDate(l.due_day, l.last_paid_for_month, from);
     items.push({
       id: l.id,
       kind: "loan",
@@ -64,7 +91,7 @@ export function buildUpcoming(
     });
   }
   for (const c of cards) {
-    const due = nextDueDate(c.due_day, from);
+    const due = activeDueDate(c.due_day, c.last_paid_for_month, from);
     items.push({
       id: c.id,
       kind: "credit_card",
@@ -75,7 +102,7 @@ export function buildUpcoming(
     });
   }
   for (const i of insurance) {
-    const due = nextDueDate(i.due_day, from);
+    const due = activeDueDate(i.due_day, i.last_paid_for_month, from);
     items.push({
       id: i.id,
       kind: "insurance",
