@@ -299,7 +299,7 @@ function Dashboard() {
                     actionLabel="Plan Payment"
                     onAction={scrollToUpcoming}
                   />
-                ))}
+                )}
 
                 {dueSoon
                   .filter((p) => p.daysUntil >= 0)
