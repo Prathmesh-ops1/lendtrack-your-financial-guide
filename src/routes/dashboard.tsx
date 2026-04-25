@@ -22,10 +22,12 @@ import { InsightsPanel } from "@/components/InsightsPanel";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  ArrowRight,
   Bell,
   Calendar,
   CheckCircle2,
   CreditCard,
+  Flame,
   HeartPulse,
   LogOut,
   Trash2,
