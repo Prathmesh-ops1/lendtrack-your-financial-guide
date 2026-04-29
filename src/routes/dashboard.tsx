@@ -197,6 +197,40 @@ function Dashboard() {
     loadAll();
   }
 
+  // Pay via dummy gateway: deduct from balance + mark paid + log history
+  async function handlePayViaGateway(p: UpcomingPayment, txnId: string) {
+    if (!user) return;
+    const newBalance = Math.max(0, balance - p.amount);
+    const today = new Date().toISOString().slice(0, 10);
+    const forMonth = monthKey(p.dueDate);
+    const table = p.kind === "loan" ? "loans" : p.kind === "credit_card" ? "credit_cards" : "insurance";
+
+    const { error: balErr } = await supabase
+      .from("balances")
+      .upsert({ user_id: user.id, amount: newBalance, updated_at: new Date().toISOString() });
+    if (balErr) toast.error(`Balance update failed: ${balErr.message}`);
+
+    const { error: upErr } = await supabase
+      .from(table)
+      .update({ last_paid_date: today, last_paid_for_month: forMonth })
+      .eq("id", p.id);
+    if (upErr) toast.error(upErr.message);
+
+    const { error: hErr } = await supabase.from("payment_history").insert({
+      user_id: user.id,
+      liability_kind: p.kind,
+      liability_id: p.id,
+      label: `${p.label} (Txn ${txnId})`,
+      amount: p.amount,
+      paid_date: today,
+      for_month: forMonth,
+    });
+    if (hErr) console.warn("History insert failed:", hErr.message);
+
+    toast.success(`Paid ${formatCurrency(p.amount)} for ${p.label}.`);
+    loadAll();
+  }
+
   if (authLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
