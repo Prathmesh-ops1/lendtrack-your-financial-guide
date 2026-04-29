@@ -428,6 +428,12 @@ function Dashboard() {
                               <span className="font-semibold tabular-nums">
                                 {formatCurrency(p.amount)}
                               </span>
+                              <PayNowDialog
+                                label={p.label}
+                                amount={p.amount}
+                                balance={balance}
+                                onPaid={(txnId) => handlePayViaGateway(p, txnId)}
+                              />
                               <Button
                                 size="sm"
                                 variant={isOverdue || isUrgent ? "default" : "outline"}
