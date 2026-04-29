@@ -176,7 +176,7 @@ function SignupPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Minimum 6 characters.</p>
+              <p className="text-xs text-muted-foreground">Min 8 chars, with uppercase, lowercase, number & special character (@$!%*?&).</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
