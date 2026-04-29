@@ -38,8 +38,16 @@ function SignupPage() {
       toast.error("First name is required.");
       return;
     }
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
+    const pwChecks = [
+      { ok: password.length >= 8, msg: "Password must be at least 8 characters." },
+      { ok: /[A-Z]/.test(password), msg: "Password must include an uppercase letter (A-Z)." },
+      { ok: /[a-z]/.test(password), msg: "Password must include a lowercase letter (a-z)." },
+      { ok: /[0-9]/.test(password), msg: "Password must include a digit (0-9)." },
+      { ok: /[@$!%*?&#^()_\-+=]/.test(password), msg: "Password must include a special character (@$!%*?&)." },
+    ];
+    const failed = pwChecks.find((c) => !c.ok);
+    if (failed) {
+      toast.error(failed.msg);
       return;
     }
     if (password !== confirmPassword) {
@@ -154,7 +162,7 @@ function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
@@ -168,7 +176,7 @@ function SignupPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Minimum 6 characters.</p>
+              <p className="text-xs text-muted-foreground">Min 8 chars, with uppercase, lowercase, number & special character (@$!%*?&).</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
@@ -180,7 +188,7 @@ function SignupPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pr-10"
