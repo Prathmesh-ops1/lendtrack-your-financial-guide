@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Wallet } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
@@ -90,14 +90,26 @@ function SignupPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-hero px-4 py-10">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center justify-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">
-            <Wallet className="h-5 w-5" />
-          </div>
-          <span className="font-display text-lg font-bold">LendTrack</span>
-        </Link>
+        <div className="mb-4 flex items-center justify-between">
+          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Link>
+          <Link to="/" className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">
+              <Wallet className="h-5 w-5" />
+            </div>
+            <span className="font-display text-lg font-bold">LendTrack</span>
+          </Link>
+          <span className="w-12" />
+        </div>
 
-        <div className="rounded-2xl border border-border/60 bg-card p-8 shadow-elegant">
+        <div className="relative rounded-2xl border border-border/60 bg-card p-8 shadow-elegant">
+          {submitting && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-card/85 backdrop-blur">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm font-medium text-foreground">Creating your account…</p>
+            </div>
+          )}
           <h1 className="font-display text-2xl font-bold">Create your account</h1>
           <p className="mt-1 text-sm text-muted-foreground">Start tracking your EMIs and avoid missed payments in seconds.</p>
 
