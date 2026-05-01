@@ -99,7 +99,7 @@ function SignupPage() {
 
         <div className="rounded-2xl border border-border/60 bg-card p-8 shadow-elegant">
           <h1 className="font-display text-2xl font-bold">Create your account</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Start tracking your liabilities in seconds.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Start tracking your EMIs and avoid missed payments in seconds.</p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div className="grid grid-cols-2 gap-3">
