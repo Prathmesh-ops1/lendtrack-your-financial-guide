@@ -2,7 +2,13 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, ShieldCheck, TrendingUp, Wallet } from "lucide-react";
+import { Bell, ShieldCheck, TrendingUp, Wallet, UserPlus, ListPlus, BellRing, CheckCircle2, AlertTriangle, CreditCard } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -91,8 +97,195 @@ function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} LendTrack. Built for clarity.
+      {/* Dashboard Preview */}
+      <section className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="mx-auto mb-8 max-w-2xl text-center">
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Your finances, <span className="text-gradient">at a glance</span>
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+            A clean, focused dashboard that shows what you owe, what's due, and what's at risk.
+          </p>
+        </div>
+        <div className="rounded-3xl border border-border/60 bg-card/80 p-4 shadow-elegant backdrop-blur sm:p-6">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-border/60 bg-background/60 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <Wallet className="h-3.5 w-3.5" /> Total balance
+              </div>
+              <p className="mt-2 font-display text-2xl font-bold">₹1,24,500</p>
+              <p className="mt-1 text-xs text-success">Sufficient for next 30 days</p>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-background/60 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <CreditCard className="h-3.5 w-3.5" /> Due this month
+              </div>
+              <p className="mt-2 font-display text-2xl font-bold">₹42,800</p>
+              <p className="mt-1 text-xs text-muted-foreground">Across 4 EMIs</p>
+            </div>
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-4">
+              <div className="flex items-center gap-2 text-xs font-medium text-warning">
+                <AlertTriangle className="h-3.5 w-3.5" /> Next 5 days
+              </div>
+              <p className="mt-2 font-display text-2xl font-bold">₹18,200</p>
+              <p className="mt-1 text-xs text-muted-foreground">2 payments upcoming</p>
+            </div>
+          </div>
+          <div className="mt-4 space-y-2">
+            {[
+              { name: "Home Loan EMI", bank: "HDFC Bank", amount: "₹24,500", due: "Due in 2 days", warn: true },
+              { name: "Credit Card", bank: "ICICI Bank", amount: "₹8,200", due: "Due in 4 days", warn: true },
+              { name: "Car Loan EMI", bank: "Axis Bank", amount: "₹10,100", due: "Due in 12 days", warn: false },
+            ].map((item) => (
+              <div
+                key={item.name}
+                className="flex items-center justify-between rounded-lg border border-border/60 bg-background/60 px-4 py-3"
+              >
+                <div>
+                  <p className="text-sm font-semibold">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">{item.bank}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold">{item.amount}</p>
+                  <p className={`text-xs ${item.warn ? "text-warning" : "text-muted-foreground"}`}>{item.due}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="mx-auto mb-10 max-w-2xl text-center">
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            How it works
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+            Get set up in under 2 minutes — no bank linking required.
+          </p>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-3">
+          {[
+            { icon: UserPlus, step: "01", title: "Create your account", desc: "Sign up with your email — no credit card, no bank login." },
+            { icon: ListPlus, step: "02", title: "Add your liabilities", desc: "Enter your loans, EMIs, credit cards and insurance in seconds." },
+            { icon: BellRing, step: "03", title: "Stay ahead with alerts", desc: "Get reminders before each payment and shortfall warnings instantly." },
+          ].map((s) => (
+            <div
+              key={s.step}
+              className="relative rounded-2xl border border-border/60 bg-card/80 p-6 shadow-card-soft backdrop-blur"
+            >
+              <span className="absolute right-5 top-5 font-display text-2xl font-bold text-primary/15">{s.step}</span>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">
+                <s.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-semibold">{s.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="mx-auto max-w-3xl px-6 pb-20">
+        <div className="mx-auto mb-8 max-w-2xl text-center">
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Frequently asked questions
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+            Everything you need to know before you get started.
+          </p>
+        </div>
+        <Accordion type="single" collapsible className="rounded-2xl border border-border/60 bg-card/80 px-5 shadow-card-soft backdrop-blur">
+          {[
+            { q: "Is LendTrack free to use?", a: "Yes — LendTrack is completely free for personal use. No credit card required to sign up." },
+            { q: "Do I need to connect my bank account?", a: "No. LendTrack never connects to your bank. You manually enter your liabilities and balance, keeping full control over your data." },
+            { q: "How is my data secured?", a: "Your data is stored securely with bank-grade encryption and protected by row-level security. Only you can access your records." },
+            { q: "What types of liabilities can I track?", a: "Home loans, personal loans, car loans, credit cards, insurance premiums, and any recurring EMI or due payment." },
+            { q: "Will I get alerts before payments are due?", a: "Yes. LendTrack surfaces every upcoming payment and warns you if your balance won't cover what's due." },
+            { q: "Can I delete my account and data anytime?", a: "Absolutely. You can remove your liabilities or delete your account at any time — your data is yours." },
+          ].map((item, i) => (
+            <AccordionItem key={i} value={`item-${i}`} className="border-border/60 last:border-0">
+              <AccordionTrigger className="text-left text-sm font-semibold hover:no-underline sm:text-base">
+                {item.q}
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground">
+                {item.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </section>
+
+      {/* Final CTA */}
+      <section className="mx-auto max-w-4xl px-6 pb-20">
+        <div className="rounded-3xl border border-border/60 bg-gradient-primary p-10 text-center text-primary-foreground shadow-elegant">
+          <CheckCircle2 className="mx-auto h-10 w-10 opacity-90" />
+          <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Take control of your EMIs today
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm opacity-90 sm:text-base">
+            Join LendTrack and never let another payment slip through the cracks.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/signup">
+              <Button size="lg" variant="secondary" className="shadow-elegant">
+                Create free account
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button size="lg" variant="ghost" className="text-primary-foreground hover:bg-white/10">
+                Sign in
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border/60 bg-card/40 backdrop-blur">
+        <div className="mx-auto max-w-6xl px-6 py-10">
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">
+                  <Wallet className="h-4 w-4" />
+                </div>
+                <span className="font-display text-base font-bold">LendTrack</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Intelligent debt &amp; liability manager built for clarity.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-display text-sm font-semibold">Product</h4>
+              <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
+                <li><Link to="/signup" className="hover:text-foreground">Get started</Link></li>
+                <li><Link to="/login" className="hover:text-foreground">Sign in</Link></li>
+                <li><a href="#" className="hover:text-foreground">Features</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display text-sm font-semibold">Company</h4>
+              <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground">About</a></li>
+                <li><a href="#" className="hover:text-foreground">Contact</a></li>
+                <li><a href="#" className="hover:text-foreground">Support</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-display text-sm font-semibold">Legal</h4>
+              <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground">Privacy policy</a></li>
+                <li><a href="#" className="hover:text-foreground">Terms of service</a></li>
+                <li><a href="#" className="hover:text-foreground">Security</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} LendTrack. Built for clarity.
+          </div>
+        </div>
       </footer>
     </div>
   );
