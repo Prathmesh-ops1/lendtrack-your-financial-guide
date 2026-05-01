@@ -73,7 +73,7 @@ function Landing() {
             },
             {
               icon: ShieldCheck,
-              title: "Private &amp; secure",
+              title: "Private & secure",
               desc: "Your financial data stays completely under your control.",
             },
           ].map((f) => (
