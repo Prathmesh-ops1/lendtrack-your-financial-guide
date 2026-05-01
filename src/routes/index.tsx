@@ -47,7 +47,7 @@ function Landing() {
           <span className="text-gradient">EMI</span> again.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          LendTrack is your intelligent debt &amp; liability manager. Track loans, credit cards and insurance — and get warned before your balance can't cover what's due.
+          LendTrack is your intelligent debt &amp; liability manager. Track loans, credit cards, and insurance in one place and get alerted before your balance falls short.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link to="/signup">
@@ -64,17 +64,17 @@ function Landing() {
             {
               icon: Bell,
               title: "Smart reminders",
-              desc: "We surface every payment due in the next 5 days so nothing slips through.",
+              desc: "Get notified before every EMI — never miss a due date.",
             },
             {
               icon: TrendingUp,
               title: "Shortfall alerts",
-              desc: "If your upcoming bills exceed your balance, we warn you immediately.",
+              desc: "Know instantly if your balance won’t cover upcoming payments.",
             },
             {
               icon: ShieldCheck,
               title: "Private &amp; secure",
-              desc: "Your data is yours. Row-level security ensures only you can see it.",
+              desc: "Your financial data stays completely under your control.",
             },
           ].map((f) => (
             <div
