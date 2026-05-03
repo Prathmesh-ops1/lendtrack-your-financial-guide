@@ -20,6 +20,7 @@ import { AddLiabilityDialog } from "@/components/AddLiabilityDialog";
 import { UpdateBalanceDialog } from "@/components/UpdateBalanceDialog";
 import { InsightsPanel } from "@/components/InsightsPanel";
 import { LoanProgressSection } from "@/components/LoanProgressSection";
+import { ManageList } from "@/components/ManageList";
 import { PayNowDialog } from "@/components/PayNowDialog";
 import { toast } from "sonner";
 import {
@@ -494,31 +495,31 @@ function Dashboard() {
 
             <LoanProgressSection userId={user.id} refreshKey={loans.length} />
 
-            {/* Add forms */}
-            <section className="grid gap-4 sm:grid-cols-3">
-              <ManageCard
+            {/* Manage liabilities */}
+            <section className="grid gap-4 lg:grid-cols-3">
+              <ManageList
                 kind="loan"
                 title="Loans / EMIs"
                 icon={Wallet}
-                count={loans.length}
                 userId={user.id}
-                onSaved={loadAll}
+                refreshKey={loans.length}
+                onChanged={loadAll}
               />
-              <ManageCard
+              <ManageList
                 kind="credit_card"
                 title="Credit cards"
                 icon={CreditCard}
-                count={cards.length}
                 userId={user.id}
-                onSaved={loadAll}
+                refreshKey={cards.length}
+                onChanged={loadAll}
               />
-              <ManageCard
+              <ManageList
                 kind="insurance"
                 title="Insurance"
                 icon={HeartPulse}
-                count={insurance.length}
                 userId={user.id}
-                onSaved={loadAll}
+                refreshKey={insurance.length}
+                onChanged={loadAll}
               />
             </section>
           </div>
