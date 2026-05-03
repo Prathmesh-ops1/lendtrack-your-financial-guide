@@ -495,31 +495,31 @@ function Dashboard() {
 
             <LoanProgressSection userId={user.id} refreshKey={loans.length} />
 
-            {/* Add forms */}
-            <section className="grid gap-4 sm:grid-cols-3">
-              <ManageCard
+            {/* Manage liabilities */}
+            <section className="grid gap-4 lg:grid-cols-3">
+              <ManageList
                 kind="loan"
                 title="Loans / EMIs"
                 icon={Wallet}
-                count={loans.length}
                 userId={user.id}
-                onSaved={loadAll}
+                refreshKey={loans.length}
+                onChanged={loadAll}
               />
-              <ManageCard
+              <ManageList
                 kind="credit_card"
                 title="Credit cards"
                 icon={CreditCard}
-                count={cards.length}
                 userId={user.id}
-                onSaved={loadAll}
+                refreshKey={cards.length}
+                onChanged={loadAll}
               />
-              <ManageCard
+              <ManageList
                 kind="insurance"
                 title="Insurance"
                 icon={HeartPulse}
-                count={insurance.length}
                 userId={user.id}
-                onSaved={loadAll}
+                refreshKey={insurance.length}
+                onChanged={loadAll}
               />
             </section>
           </div>
