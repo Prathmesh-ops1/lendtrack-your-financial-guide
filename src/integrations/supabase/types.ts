@@ -36,8 +36,10 @@ export type Database = {
         Row: {
           bank_name: string
           created_at: string
+          credit_limit: number | null
           due_day: number
           id: string
+          interest_rate: number | null
           last_paid_date: string | null
           last_paid_for_month: string | null
           outstanding_amount: number
@@ -47,8 +49,10 @@ export type Database = {
         Insert: {
           bank_name: string
           created_at?: string
+          credit_limit?: number | null
           due_day: number
           id?: string
+          interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
           outstanding_amount: number
@@ -58,8 +62,10 @@ export type Database = {
         Update: {
           bank_name?: string
           created_at?: string
+          credit_limit?: number | null
           due_day?: number
           id?: string
+          interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
           outstanding_amount?: number
@@ -76,7 +82,10 @@ export type Database = {
           insurance_type: string
           last_paid_date: string | null
           last_paid_for_month: string | null
+          policy_start_date: string | null
+          policy_term_years: number | null
           premium_amount: number
+          sum_assured: number | null
           updated_at: string
           user_id: string
         }
@@ -87,7 +96,10 @@ export type Database = {
           insurance_type: string
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          policy_start_date?: string | null
+          policy_term_years?: number | null
           premium_amount: number
+          sum_assured?: number | null
           updated_at?: string
           user_id: string
         }
@@ -98,7 +110,10 @@ export type Database = {
           insurance_type?: string
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          policy_start_date?: string | null
+          policy_term_years?: number | null
           premium_amount?: number
+          sum_assured?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -111,8 +126,12 @@ export type Database = {
           due_day: number
           emi_amount: number
           id: string
+          interest_rate: number | null
           last_paid_date: string | null
           last_paid_for_month: string | null
+          principal_amount: number | null
+          start_date: string | null
+          tenure_months: number | null
           updated_at: string
           user_id: string
         }
@@ -122,8 +141,12 @@ export type Database = {
           due_day: number
           emi_amount: number
           id?: string
+          interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          principal_amount?: number | null
+          start_date?: string | null
+          tenure_months?: number | null
           updated_at?: string
           user_id: string
         }
@@ -133,8 +156,12 @@ export type Database = {
           due_day?: number
           emi_amount?: number
           id?: string
+          interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          principal_amount?: number | null
+          start_date?: string | null
+          tenure_months?: number | null
           updated_at?: string
           user_id?: string
         }

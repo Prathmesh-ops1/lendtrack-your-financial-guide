@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { AddLiabilityDialog } from "@/components/AddLiabilityDialog";
 import { UpdateBalanceDialog } from "@/components/UpdateBalanceDialog";
 import { InsightsPanel } from "@/components/InsightsPanel";
+import { LoanProgressSection } from "@/components/LoanProgressSection";
 import { PayNowDialog } from "@/components/PayNowDialog";
 import { toast } from "sonner";
 import {
@@ -490,6 +491,8 @@ function Dashboard() {
                 </CardContent>
               </Card>
             </section>
+
+            <LoanProgressSection userId={user.id} refreshKey={loans.length} />
 
             {/* Add forms */}
             <section className="grid gap-4 sm:grid-cols-3">
