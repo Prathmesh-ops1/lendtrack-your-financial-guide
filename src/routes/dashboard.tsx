@@ -20,6 +20,7 @@ import { AddLiabilityDialog } from "@/components/AddLiabilityDialog";
 import { UpdateBalanceDialog } from "@/components/UpdateBalanceDialog";
 import { InsightsPanel } from "@/components/InsightsPanel";
 import { LoanProgressSection } from "@/components/LoanProgressSection";
+import { ManageList } from "@/components/ManageList";
 import { PayNowDialog } from "@/components/PayNowDialog";
 import { toast } from "sonner";
 import {
