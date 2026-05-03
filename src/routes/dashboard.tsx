@@ -492,6 +492,8 @@ function Dashboard() {
               </Card>
             </section>
 
+            <LoanProgressSection userId={user.id} refreshKey={loans.length} />
+
             {/* Add forms */}
             <section className="grid gap-4 sm:grid-cols-3">
               <ManageCard
