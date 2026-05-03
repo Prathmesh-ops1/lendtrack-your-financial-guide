@@ -13,23 +13,29 @@ interface Props {
 
 export function LoanProgressSection({ userId, refreshKey }: Props) {
   const [loans, setLoans] = useState<LoanWithDetails[]>([]);
+  const [prepaidByLoan, setPrepaidByLoan] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("loans")
-        .select(
-          "id, bank_name, emi_amount, due_day, principal_amount, start_date, interest_rate, tenure_months",
-        )
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      if (active) {
-        setLoans((data ?? []) as LoanWithDetails[]);
-        setLoading(false);
+      const [loansRes, prepayRes] = await Promise.all([
+        supabase
+          .from("loans")
+          .select("id, bank_name, emi_amount, due_day, principal_amount, start_date, interest_rate, tenure_months")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+        supabase.from("loan_prepayments").select("loan_id, amount").eq("user_id", userId),
+      ]);
+      if (!active) return;
+      setLoans((loansRes.data ?? []) as LoanWithDetails[]);
+      const map: Record<string, number> = {};
+      for (const p of (prepayRes.data ?? []) as Array<{ loan_id: string; amount: number }>) {
+        map[p.loan_id] = (map[p.loan_id] ?? 0) + Number(p.amount);
       }
+      setPrepaidByLoan(map);
+      setLoading(false);
     })();
     return () => {
       active = false;
@@ -48,6 +54,10 @@ export function LoanProgressSection({ userId, refreshKey }: Props) {
         {detailed.map((l) => {
           const p = computeLoanProgress(l);
           if (!p) return null;
+          const prepaid = prepaidByLoan[l.id] ?? 0;
+          const totalPaid = p.amountPaidApprox + prepaid;
+          const remaining = Math.max(0, p.totalPayable - totalPaid);
+          const overallPct = p.totalPayable > 0 ? Math.min(100, (totalPaid / p.totalPayable) * 100) : 0;
           return (
             <Card key={l.id} className="shadow-card-soft">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -57,9 +67,7 @@ export function LoanProgressSection({ userId, refreshKey }: Props) {
                   </div>
                   <CardTitle className="text-base font-semibold">{l.bank_name} EMI</CardTitle>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {l.interest_rate}% p.a.
-                </span>
+                <span className="text-xs text-muted-foreground">{l.interest_rate}% p.a.</span>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -67,29 +75,22 @@ export function LoanProgressSection({ userId, refreshKey }: Props) {
                     <span>
                       {p.emisPaid} of {l.tenure_months} EMIs paid
                     </span>
-                    <span className="font-medium text-foreground">
-                      {p.percentComplete.toFixed(1)}%
-                    </span>
+                    <span className="font-medium text-foreground">{overallPct.toFixed(1)}% closed</span>
                   </div>
-                  <Progress value={p.percentComplete} />
+                  <Progress value={overallPct} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <Stat label="Principal" value={formatCurrency(Number(l.principal_amount))} />
                   <Stat label="EMI" value={formatCurrency(Number(l.emi_amount))} />
                   <Stat label="Total payable" value={formatCurrency(p.totalPayable)} />
-                  <Stat
-                    label="Total interest"
-                    value={formatCurrency(p.totalInterest)}
-                    tone="warning"
-                  />
-                  <Stat label="Paid so far" value={formatCurrency(p.amountPaidApprox)} tone="success" />
-                  <Stat label="Remaining" value={formatCurrency(p.amountRemainingApprox)} />
+                  <Stat label="Total interest" value={formatCurrency(p.totalInterest)} tone="warning" />
+                  <Stat label="EMIs paid" value={formatCurrency(p.amountPaidApprox)} tone="success" />
+                  <Stat label="Prepaid" value={formatCurrency(prepaid)} tone="success" />
+                  <Stat label="Total paid" value={formatCurrency(totalPaid)} tone="success" />
+                  <Stat label="Remaining" value={formatCurrency(remaining)} />
                   <Stat label="EMIs left" value={`${p.emisRemaining}`} />
-                  <Stat
-                    label="Ends on"
-                    value={p.endDate ? formatDate(p.endDate) : "—"}
-                  />
+                  <Stat label="Ends on" value={p.endDate ? formatDate(p.endDate) : "—"} />
                 </div>
               </CardContent>
             </Card>
