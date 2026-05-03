@@ -119,6 +119,36 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_prepayments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          loan_id: string
+          note: string | null
+          paid_date: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          loan_id: string
+          note?: string | null
+          paid_date?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          loan_id?: string
+          note?: string | null
+          paid_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       loans: {
         Row: {
           bank_name: string
