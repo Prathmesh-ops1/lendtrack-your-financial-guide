@@ -53,25 +53,55 @@ function Landing() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 pt-12 pb-20 text-center sm:pt-20">
-        <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-          <span className="h-1.5 w-1.5 rounded-full bg-success" />
-          Smart alerts • Recurring EMI tracking • Shortfall detection
-        </div>
-        <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
-          Never miss an{" "}
-          <span className="text-gradient">EMI</span> again.
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          LendTrack is your intelligent debt &amp; liability manager. Track loans, credit cards, and insurance in one place and get alerted before your balance falls short.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/signup">
-            <Button size="lg" className="bg-gradient-primary shadow-elegant">Create free account</Button>
-          </Link>
-          <Link to="/login">
-            <Button size="lg" variant="outline">I already have an account</Button>
-          </Link>
-        </div>
+        <Reveal>
+          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground shadow-card-soft backdrop-blur transition-transform hover:scale-105">
+            <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+            Smart alerts • Recurring EMI tracking • Shortfall detection
+          </div>
+        </Reveal>
+        <Reveal delay={120}>
+          <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
+            Never miss an{" "}
+            <span className="text-gradient">EMI</span> again.
+          </h1>
+        </Reveal>
+        <Reveal delay={220}>
+          <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
+            LendTrack is your intelligent debt &amp; liability manager. Track loans, credit cards, and insurance in one place and get alerted before your balance falls short.
+          </p>
+        </Reveal>
+        <Reveal delay={320}>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/signup">
+              <Button size="lg" className="group bg-gradient-primary shadow-elegant transition-transform hover:scale-105">
+                Create free account
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button size="lg" variant="outline" className="transition-transform hover:scale-105">I already have an account</Button>
+            </Link>
+          </div>
+        </Reveal>
+
+        {/* Animated stats strip */}
+        <Reveal delay={420}>
+          <div className="mx-auto mt-14 grid max-w-3xl grid-cols-2 gap-4 rounded-2xl border border-border/60 bg-card/70 p-6 shadow-card-soft backdrop-blur sm:grid-cols-4">
+            {[
+              { v: 12500, suffix: "+", label: "EMIs tracked" },
+              { v: 98, suffix: "%", label: "On-time rate" },
+              { v: 45, prefix: "₹", suffix: "Cr+", label: "Liabilities managed" },
+              { v: 4.9, decimals: 1, suffix: "/5", label: "User rating" },
+            ].map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="font-display text-2xl font-bold text-gradient sm:text-3xl">
+                  <CountUp end={s.v} prefix={s.prefix} suffix={s.suffix} decimals={s.decimals ?? 0} />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
 
         {/* Feature cards */}
         <div className="mt-20 grid gap-5 text-left sm:grid-cols-3">
