@@ -26,8 +26,14 @@ function Landing() {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      {/* Nav */}
+    <div className="relative min-h-screen overflow-hidden bg-gradient-hero">
+      {/* Animated background blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="animate-blob absolute -left-32 top-20 h-96 w-96 rounded-full bg-primary/30" />
+        <div className="animate-blob absolute right-0 top-96 h-80 w-80 rounded-full bg-gold/30" style={{ animationDelay: "3s" }} />
+        <div className="animate-blob absolute bottom-40 left-1/3 h-72 w-72 rounded-full bg-primary-glow/25" style={{ animationDelay: "6s" }} />
+      </div>
+      <div className="relative">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">
