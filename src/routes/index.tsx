@@ -121,17 +121,72 @@ function Landing() {
               title: "Private & secure",
               desc: "Your financial data stays completely under your control.",
             },
-          ].map((f) => (
-            <div
-              key={f.title}
-              className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-card-soft backdrop-blur"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <f.icon className="h-5 w-5" />
+          ].map((f, i) => (
+            <Reveal key={f.title} delay={i * 120}>
+              <div className="hover-lift group h-full rounded-2xl border border-border/60 bg-card/80 p-6 shadow-card-soft backdrop-blur">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant transition-transform group-hover:scale-110 group-hover:rotate-6">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 font-display text-lg font-semibold">{f.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
               </div>
-              <h3 className="mt-4 font-display text-lg font-semibold">{f.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: f.desc }} />
-            </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* EMI Calculator */}
+      <section className="mx-auto max-w-6xl px-6 pb-20">
+        <Reveal>
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              Play with the <span className="text-gradient">numbers</span>
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+              Drag the sliders to instantly see your EMI, total interest, and payable amount.
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={150}>
+          <EmiCalculator />
+        </Reveal>
+      </section>
+
+      {/* Testimonials */}
+      <section className="mx-auto max-w-6xl px-6 pb-20">
+        <Reveal>
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              Loved by mindful borrowers
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+              Real stories from people who took control of their EMIs.
+            </p>
+          </div>
+        </Reveal>
+        <div className="grid gap-5 sm:grid-cols-3">
+          {[
+            { name: "Rohan S.", role: "Software Engineer", quote: "I used to forget my credit card due dates every other month. LendTrack's alerts saved me from late fees thrice already." },
+            { name: "Priya M.", role: "Marketing Lead", quote: "The shortfall alert is a game-changer. I now plan my salary days around my EMIs, not the other way around." },
+            { name: "Arjun K.", role: "Freelancer", quote: "Tracking my home loan progress visually makes me feel in control. Prepayments tracking is just *chef's kiss*." },
+          ].map((t, i) => (
+            <Reveal key={t.name} delay={i * 120}>
+              <div className="hover-lift group h-full rounded-2xl border border-border/60 bg-card/80 p-6 shadow-card-soft backdrop-blur">
+                <Quote className="h-6 w-6 text-primary/40" />
+                <p className="mt-3 text-sm text-foreground/90">{t.quote}</p>
+                <div className="mt-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
+                  <div className="flex gap-0.5 text-warning">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} className="h-3.5 w-3.5 fill-current" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
