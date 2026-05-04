@@ -2,13 +2,16 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, ShieldCheck, TrendingUp, Wallet, UserPlus, ListPlus, BellRing, CheckCircle2, AlertTriangle, CreditCard } from "lucide-react";
+import { Bell, ShieldCheck, TrendingUp, Wallet, UserPlus, ListPlus, BellRing, CheckCircle2, AlertTriangle, CreditCard, Sparkles, ArrowRight, Star, Quote } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Reveal } from "@/components/landing/Reveal";
+import { CountUp } from "@/components/landing/CountUp";
+import { EmiCalculator } from "@/components/landing/EmiCalculator";
 
 export const Route = createFileRoute("/")({
   component: Landing,
