@@ -268,7 +268,7 @@ function Landing() {
           ].map((s) => (
             <div
               key={s.step}
-              className="relative rounded-2xl border border-border/60 bg-card/80 p-6 shadow-card-soft backdrop-blur"
+              className="hover-lift group relative rounded-2xl border border-border/60 bg-card/80 p-6 shadow-card-soft backdrop-blur"
             >
               <span className="absolute right-5 top-5 font-display text-2xl font-bold text-primary/15">{s.step}</span>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant">
