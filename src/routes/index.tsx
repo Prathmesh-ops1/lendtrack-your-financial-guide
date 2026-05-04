@@ -381,6 +381,7 @@ function Landing() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }
