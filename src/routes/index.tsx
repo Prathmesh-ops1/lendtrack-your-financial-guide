@@ -230,10 +230,11 @@ function Landing() {
               { name: "Home Loan EMI", bank: "HDFC Bank", amount: "₹24,500", due: "Due in 2 days", warn: true },
               { name: "Credit Card", bank: "ICICI Bank", amount: "₹8,200", due: "Due in 4 days", warn: true },
               { name: "Car Loan EMI", bank: "Axis Bank", amount: "₹10,100", due: "Due in 12 days", warn: false },
-            ].map((item) => (
+            ].map((item, idx) => (
               <div
                 key={item.name}
-                className="flex items-center justify-between rounded-lg border border-border/60 bg-background/60 px-4 py-3"
+                className="group flex items-center justify-between rounded-lg border border-border/60 bg-background/60 px-4 py-3 transition-all hover:border-primary/40 hover:bg-background/90 hover:translate-x-1"
+                style={{ animationDelay: `${idx * 100}ms` }}
               >
                 <div>
                   <p className="text-sm font-semibold">{item.name}</p>
