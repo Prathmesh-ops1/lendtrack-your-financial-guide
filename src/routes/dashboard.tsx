@@ -493,35 +493,43 @@ function Dashboard() {
               </Card>
             </section>
 
-            <LoanProgressSection userId={user.id} refreshKey={loans.length} />
+            <CollapsibleSection title="Loan progress & insights" defaultOpen={false}>
+              <LoanProgressSection userId={user.id} refreshKey={loans.length} />
+            </CollapsibleSection>
 
             {/* Manage liabilities */}
-            <section className="grid gap-4 lg:grid-cols-3">
-              <ManageList
-                kind="loan"
-                title="Loans / EMIs"
-                icon={Wallet}
-                userId={user.id}
-                refreshKey={loans.length}
-                onChanged={loadAll}
-              />
-              <ManageList
-                kind="credit_card"
-                title="Credit cards"
-                icon={CreditCard}
-                userId={user.id}
-                refreshKey={cards.length}
-                onChanged={loadAll}
-              />
-              <ManageList
-                kind="insurance"
-                title="Insurance"
-                icon={HeartPulse}
-                userId={user.id}
-                refreshKey={insurance.length}
-                onChanged={loadAll}
-              />
-            </section>
+            <CollapsibleSection
+              title="Manage liabilities"
+              subtitle={`${loans.length} loan${loans.length === 1 ? "" : "s"} • ${cards.length} card${cards.length === 1 ? "" : "s"} • ${insurance.length} insurance`}
+              defaultOpen={false}
+            >
+              <div className="grid gap-4 lg:grid-cols-3">
+                <ManageList
+                  kind="loan"
+                  title="Loans / EMIs"
+                  icon={Wallet}
+                  userId={user.id}
+                  refreshKey={loans.length}
+                  onChanged={loadAll}
+                />
+                <ManageList
+                  kind="credit_card"
+                  title="Credit cards"
+                  icon={CreditCard}
+                  userId={user.id}
+                  refreshKey={cards.length}
+                  onChanged={loadAll}
+                />
+                <ManageList
+                  kind="insurance"
+                  title="Insurance"
+                  icon={HeartPulse}
+                  userId={user.id}
+                  refreshKey={insurance.length}
+                  onChanged={loadAll}
+                />
+              </div>
+            </CollapsibleSection>
           </div>
 
           {/* Right side: insights */}
