@@ -693,3 +693,36 @@ function ManageCard({
     </Card>
   );
 }
+
+function CollapsibleSection({
+  title,
+  subtitle,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between rounded-xl border border-border/60 bg-card p-4 text-left shadow-card-soft transition hover:bg-muted/40"
+        aria-expanded={open}
+      >
+        <div>
+          <h2 className="font-display text-lg font-semibold">{title}</h2>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        <ChevronDown
+          className={`h-5 w-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && <div className="mt-4">{children}</div>}
+    </section>
+  );
+}
