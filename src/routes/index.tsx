@@ -294,7 +294,7 @@ function Landing() {
         <Accordion type="single" collapsible className="rounded-2xl border border-border/60 bg-card/80 px-5 shadow-card-soft backdrop-blur">
           {[
             { q: "Is LendTrack free to use?", a: "Yes — LendTrack is completely free for personal use. No credit card required to sign up." },
-            { q: "Do I need to connect my bank account?", a: "No. LendTrack never connects to your bank. You manually enter your liabilities and balance, keeping full control over your data." },
+            
             { q: "How is my data secured?", a: "Your data is stored securely with bank-grade encryption and protected by row-level security. Only you can access your records." },
             { q: "What types of liabilities can I track?", a: "Home loans, personal loans, car loans, credit cards, insurance premiums, and any recurring EMI or due payment." },
             { q: "Will I get alerts before payments are due?", a: "Yes. LendTrack surfaces every upcoming payment and warns you if your balance won't cover what's due." },
@@ -310,31 +310,6 @@ function Landing() {
             </AccordionItem>
           ))}
         </Accordion>
-      </section>
-
-      {/* Final CTA */}
-      <section className="mx-auto max-w-4xl px-6 pb-20">
-        <div className="rounded-3xl border border-border/60 bg-gradient-primary p-10 text-center text-primary-foreground shadow-elegant">
-          <CheckCircle2 className="mx-auto h-10 w-10 opacity-90" />
-          <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Take control of your EMIs today
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm opacity-90 sm:text-base">
-            Join LendTrack and never let another payment slip through the cracks.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/signup">
-              <Button size="lg" variant="secondary" className="shadow-elegant">
-                Create free account
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button size="lg" variant="ghost" className="text-primary-foreground hover:bg-white/10">
-                Sign in
-              </Button>
-            </Link>
-          </div>
-        </div>
       </section>
 
       {/* Footer */}
