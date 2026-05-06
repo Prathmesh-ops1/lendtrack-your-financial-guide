@@ -212,11 +212,21 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="amount">{cfg.amountLabel} <span className="text-destructive">*</span></Label>
+              <Label htmlFor="amount">
+                {cfg.amountLabel} <span className="text-destructive">*</span>
+                {kind === "loan" && <span className="ml-1 text-xs text-muted-foreground">(auto)</span>}
+              </Label>
               <Input
                 id="amount" type="number" inputMode="decimal" min="0" step="0.01"
                 value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0"
+                readOnly={kind === "loan"}
+                className={kind === "loan" ? "bg-muted/40" : undefined}
               />
+              {kind === "loan" && (
+                <p className="text-xs text-muted-foreground">
+                  Calculated from loan amount, interest rate & tenure.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
