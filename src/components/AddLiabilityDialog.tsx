@@ -71,6 +71,20 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
 
   const cfg = LABEL_BY_KIND[kind];
 
+  // Auto-calculate EMI from principal, interest rate, and tenure
+  useEffect(() => {
+    if (kind !== "loan") return;
+    const p = Number(principal);
+    const r = Number(interestRate);
+    const n = Number(tenureMonths);
+    if (!Number.isFinite(p) || p <= 0 || !Number.isFinite(r) || r <= 0 || !Number.isInteger(n) || n < 1) return;
+    const monthly = r / 12 / 100;
+    const emi = (p * monthly * Math.pow(1 + monthly, n)) / (Math.pow(1 + monthly, n) - 1);
+    if (Number.isFinite(emi) && emi > 0) {
+      setAmount(emi.toFixed(2));
+    }
+  }, [kind, principal, interestRate, tenureMonths]);
+
   function reset() {
     setName(""); setAmount(""); setDueDay("5");
     setPrincipal(""); setStartDate(""); setInterestRate(""); setTenureMonths("");
