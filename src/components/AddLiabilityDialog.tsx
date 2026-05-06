@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +70,20 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   const cfg = LABEL_BY_KIND[kind];
+
+  // Auto-calculate EMI from principal, interest rate, and tenure
+  useEffect(() => {
+    if (kind !== "loan") return;
+    const p = Number(principal);
+    const r = Number(interestRate);
+    const n = Number(tenureMonths);
+    if (!Number.isFinite(p) || p <= 0 || !Number.isFinite(r) || r <= 0 || !Number.isInteger(n) || n < 1) return;
+    const monthly = r / 12 / 100;
+    const emi = (p * monthly * Math.pow(1 + monthly, n)) / (Math.pow(1 + monthly, n) - 1);
+    if (Number.isFinite(emi) && emi > 0) {
+      setAmount(emi.toFixed(2));
+    }
+  }, [kind, principal, interestRate, tenureMonths]);
 
   function reset() {
     setName(""); setAmount(""); setDueDay("5");
@@ -198,11 +212,21 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="amount">{cfg.amountLabel} <span className="text-destructive">*</span></Label>
+              <Label htmlFor="amount">
+                {cfg.amountLabel} <span className="text-destructive">*</span>
+                {kind === "loan" && <span className="ml-1 text-xs text-muted-foreground">(auto)</span>}
+              </Label>
               <Input
                 id="amount" type="number" inputMode="decimal" min="0" step="0.01"
                 value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0"
+                readOnly={kind === "loan"}
+                className={kind === "loan" ? "bg-muted/40" : undefined}
               />
+              {kind === "loan" && (
+                <p className="text-xs text-muted-foreground">
+                  Calculated from loan amount, interest rate & tenure.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
