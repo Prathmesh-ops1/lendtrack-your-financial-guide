@@ -29,6 +29,7 @@ import {
   Bell,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   CreditCard,
   Flame,
   HeartPulse,
