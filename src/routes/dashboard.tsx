@@ -29,6 +29,7 @@ import {
   Bell,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   CreditCard,
   Flame,
   HeartPulse,
@@ -493,35 +494,43 @@ function Dashboard() {
               </Card>
             </section>
 
-            <LoanProgressSection userId={user.id} refreshKey={loans.length} />
+            <CollapsibleSection title="Loan progress & insights" defaultOpen={false}>
+              <LoanProgressSection userId={user.id} refreshKey={loans.length} />
+            </CollapsibleSection>
 
             {/* Manage liabilities */}
-            <section className="grid gap-4 lg:grid-cols-3">
-              <ManageList
-                kind="loan"
-                title="Loans / EMIs"
-                icon={Wallet}
-                userId={user.id}
-                refreshKey={loans.length}
-                onChanged={loadAll}
-              />
-              <ManageList
-                kind="credit_card"
-                title="Credit cards"
-                icon={CreditCard}
-                userId={user.id}
-                refreshKey={cards.length}
-                onChanged={loadAll}
-              />
-              <ManageList
-                kind="insurance"
-                title="Insurance"
-                icon={HeartPulse}
-                userId={user.id}
-                refreshKey={insurance.length}
-                onChanged={loadAll}
-              />
-            </section>
+            <CollapsibleSection
+              title="Manage liabilities"
+              subtitle={`${loans.length} loan${loans.length === 1 ? "" : "s"} • ${cards.length} card${cards.length === 1 ? "" : "s"} • ${insurance.length} insurance`}
+              defaultOpen={false}
+            >
+              <div className="grid gap-4 lg:grid-cols-3">
+                <ManageList
+                  kind="loan"
+                  title="Loans / EMIs"
+                  icon={Wallet}
+                  userId={user.id}
+                  refreshKey={loans.length}
+                  onChanged={loadAll}
+                />
+                <ManageList
+                  kind="credit_card"
+                  title="Credit cards"
+                  icon={CreditCard}
+                  userId={user.id}
+                  refreshKey={cards.length}
+                  onChanged={loadAll}
+                />
+                <ManageList
+                  kind="insurance"
+                  title="Insurance"
+                  icon={HeartPulse}
+                  userId={user.id}
+                  refreshKey={insurance.length}
+                  onChanged={loadAll}
+                />
+              </div>
+            </CollapsibleSection>
           </div>
 
           {/* Right side: insights */}
@@ -682,5 +691,38 @@ function ManageCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  subtitle,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between rounded-xl border border-border/60 bg-card p-4 text-left shadow-card-soft transition hover:bg-muted/40"
+        aria-expanded={open}
+      >
+        <div>
+          <h2 className="font-display text-lg font-semibold">{title}</h2>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        <ChevronDown
+          className={`h-5 w-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && <div className="mt-4">{children}</div>}
+    </section>
   );
 }
