@@ -191,65 +191,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* Dashboard Preview */}
-      <section className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="mx-auto mb-8 max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Your finances, <span className="text-gradient">at a glance</span>
-          </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            A clean, focused dashboard that shows what you owe, what's due, and what's at risk.
-          </p>
-        </div>
-        <div className="rounded-3xl border border-border/60 bg-card/80 p-4 shadow-elegant backdrop-blur sm:p-6">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-border/60 bg-background/60 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Wallet className="h-3.5 w-3.5" /> Total balance
-              </div>
-              <p className="mt-2 font-display text-2xl font-bold">₹1,24,500</p>
-              <p className="mt-1 text-xs text-success">Sufficient for next 30 days</p>
-            </div>
-            <div className="rounded-xl border border-border/60 bg-background/60 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <CreditCard className="h-3.5 w-3.5" /> Due this month
-              </div>
-              <p className="mt-2 font-display text-2xl font-bold">₹42,800</p>
-              <p className="mt-1 text-xs text-muted-foreground">Across 4 EMIs</p>
-            </div>
-            <div className="rounded-xl border border-warning/30 bg-warning/10 p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-warning">
-                <AlertTriangle className="h-3.5 w-3.5" /> Next 5 days
-              </div>
-              <p className="mt-2 font-display text-2xl font-bold">₹18,200</p>
-              <p className="mt-1 text-xs text-muted-foreground">2 payments upcoming</p>
-            </div>
-          </div>
-          <div className="mt-4 space-y-2">
-            {[
-              { name: "Home Loan EMI", bank: "HDFC Bank", amount: "₹24,500", due: "Due in 2 days", warn: true },
-              { name: "Credit Card", bank: "ICICI Bank", amount: "₹8,200", due: "Due in 4 days", warn: true },
-              { name: "Car Loan EMI", bank: "Axis Bank", amount: "₹10,100", due: "Due in 12 days", warn: false },
-            ].map((item, idx) => (
-              <div
-                key={item.name}
-                className="group flex items-center justify-between rounded-lg border border-border/60 bg-background/60 px-4 py-3 transition-all hover:border-primary/40 hover:bg-background/90 hover:translate-x-1"
-                style={{ animationDelay: `${idx * 100}ms` }}
-              >
-                <div>
-                  <p className="text-sm font-semibold">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.bank}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold">{item.amount}</p>
-                  <p className={`text-xs ${item.warn ? "text-warning" : "text-muted-foreground"}`}>{item.due}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* How it works */}
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <div className="mx-auto mb-10 max-w-2xl text-center">
