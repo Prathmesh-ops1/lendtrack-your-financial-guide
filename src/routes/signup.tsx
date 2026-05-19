@@ -21,6 +21,7 @@ function SignupPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [mobile, setMobile] = useState("");
+  const [mobileError, setMobileError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,6 +39,14 @@ function SignupPage() {
       toast.error("First name is required.");
       return;
     }
+    const mobileValue = mobile.trim();
+    if (mobileValue && !/^[6-9][0-9]{9}$/.test(mobileValue)) {
+      setMobileError("Mobile number must be 10 digits and start with 6, 7, 8, or 9.");
+      return;
+    } else {
+      setMobileError(null);
+    }
+
     const pwChecks = [
       { ok: password.length >= 8, msg: "Password must be at least 8 characters." },
       { ok: /[A-Z]/.test(password), msg: "Password must include an uppercase letter (A-Z)." },
@@ -55,22 +64,25 @@ function SignupPage() {
       return;
     }
     setSubmitting(true);
-    const redirectUrl = `${window.location.origin}/dashboard`;
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
-        data: { first_name: firstName.trim(), last_name: lastName.trim() || null, mobile: mobile.trim() || null },
+        data: {
+          first_name: firstName.trim(),
+          last_name: lastName.trim() || null,
+          mobile: mobile.trim() || null,
+        },
       },
     });
+
     if (error) {
       setSubmitting(false);
       toast.error(error.message);
       return;
     }
 
-    // Create profile row (works whether session exists or email confirmation required)
     if (data.user) {
       const { error: pErr } = await supabase.from("profiles").insert({
         user_id: data.user.id,
@@ -82,8 +94,9 @@ function SignupPage() {
         console.warn("Profile insert failed:", pErr.message);
       }
     }
+
     setSubmitting(false);
-    toast.success("Account created! You're signed in.");
+    toast.success("Account created! You may need to verify your email if Supabase requires it.");
     navigate({ to: "/dashboard" });
   }
 
@@ -148,8 +161,14 @@ function SignupPage() {
                 type="tel"
                 autoComplete="tel"
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                maxLength={10}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setMobile(digits);
+                  if (mobileError) setMobileError(null);
+                }}
               />
+              {mobileError && <p className="text-xs text-destructive mt-1">{mobileError}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">
