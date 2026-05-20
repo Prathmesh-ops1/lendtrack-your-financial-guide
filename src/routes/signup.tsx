@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { createVerifiedUserFn } from "@/integrations/supabase/admin.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,10 @@ function SignupPage() {
       { ok: /[A-Z]/.test(password), msg: "Password must include an uppercase letter (A-Z)." },
       { ok: /[a-z]/.test(password), msg: "Password must include a lowercase letter (a-z)." },
       { ok: /[0-9]/.test(password), msg: "Password must include a digit (0-9)." },
-      { ok: /[@$!%*?&#^()_\-+=]/.test(password), msg: "Password must include a special character (@$!%*?&)." },
+      {
+        ok: /[@$!%*?&#^()_\-+=]/.test(password),
+        msg: "Password must include a special character (@$!%*?&).",
+      },
     ];
     const failed = pwChecks.find((c) => !c.ok);
     if (failed) {
@@ -63,48 +67,54 @@ function SignupPage() {
       toast.error("Passwords do not match.");
       return;
     }
+
     setSubmitting(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
+    try {
+      await createVerifiedUserFn({
         data: {
-          first_name: firstName.trim(),
-          last_name: lastName.trim() || null,
+          email,
+          password,
+          firstName: firstName.trim(),
+          lastName: lastName.trim() || null,
           mobile: mobile.trim() || null,
         },
-      },
-    });
-
-    if (error) {
-      setSubmitting(false);
-      toast.error(error.message);
-      return;
-    }
-
-    if (data.user) {
-      const { error: pErr } = await supabase.from("profiles").insert({
-        user_id: data.user.id,
-        first_name: firstName.trim(),
-        last_name: lastName.trim() || null,
-        mobile: mobile.trim() || null,
       });
-      if (pErr && !pErr.message.includes("duplicate")) {
-        console.warn("Profile insert failed:", pErr.message);
-      }
-    }
 
-    setSubmitting(false);
-    toast.success("Account created! You may need to verify your email if Supabase requires it.");
-    navigate({ to: "/dashboard" });
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+
+      if (signInData.session) {
+        toast.success("Account created! You're signed in.");
+        navigate({ to: "/dashboard" });
+      } else {
+        toast.success("Account created! Please sign in.");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Unable to create account. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-hero px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-4 flex items-center justify-between">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
           <Link to="/" className="flex items-center gap-2">
@@ -124,7 +134,9 @@ function SignupPage() {
             </div>
           )}
           <h1 className="font-display text-2xl font-bold">Create your account</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Start tracking your EMIs and avoid missed payments in seconds.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Start tracking your EMIs and avoid missed payments in seconds.
+          </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -163,7 +175,7 @@ function SignupPage() {
                 value={mobile}
                 maxLength={10}
                 onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
                   setMobile(digits);
                   if (mobileError) setMobileError(null);
                 }}
@@ -207,7 +219,9 @@ function SignupPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Min 8 chars, with uppercase, lowercase, number & special character (@$!%*?&).</p>
+              <p className="text-xs text-muted-foreground">
+                Min 8 chars, with uppercase, lowercase, number & special character (@$!%*?&).
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
@@ -230,7 +244,11 @@ function SignupPage() {
                   className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
                   aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
