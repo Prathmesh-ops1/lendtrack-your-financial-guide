@@ -314,6 +314,84 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                   />
                 </div>
               </div>
+
+              <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="rounded-md border">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted/40"
+                  >
+                    <span>Advanced Loan Settings</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3 border-t p-3">
+                  <p className="text-xs text-muted-foreground">
+                    Optional: Broken Period Interest (BPI) is charged for days between disbursement and the first EMI.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="disb">Loan Disbursement Date</Label>
+                      <Input
+                        id="disb" type="date"
+                        value={disbursementDate}
+                        onChange={(e) => setDisbursementDate(e.target.value)}
+                        max={startDate || undefined}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bpitreat">BPI Treatment</Label>
+                      <Select value={bpiTreatment} onValueChange={(v) => setBpiTreatment(v as typeof bpiTreatment)}>
+                        <SelectTrigger id="bpitreat">
+                          <SelectValue placeholder="Select treatment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="separate">Collected Separately</SelectItem>
+                          <SelectItem value="added_to_first_emi">Added to First EMI</SelectItem>
+                          <SelectItem value="deducted_from_disbursed">Deducted From Disbursed Amount</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {bpi?.invalid && (
+                    <p className="text-xs text-destructive">
+                      Disbursement Date cannot be later than First EMI Date.
+                    </p>
+                  )}
+
+                  {bpi && !bpi.invalid && (
+                    <div className="rounded-md bg-muted/40 p-3 text-sm space-y-1">
+                      <div className="font-medium">Loan Summary</div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Loan Amount</span><span>{formatCurrency(Number(principal))}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Interest Rate</span><span>{interestRate}% p.a.</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Disbursement Date</span><span>{disbursementDate}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">First EMI Date</span><span>{startDate}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Broken Period Days</span><span>{bpi.days}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Broken Period Interest</span><span>{formatCurrency(bpi.interest)}</span></div>
+                      {bpiTreatment && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">BPI Treatment</span>
+                          <span>
+                            {bpiTreatment === "separate" && "Collected Separately"}
+                            {bpiTreatment === "added_to_first_emi" && "Added to First EMI"}
+                            {bpiTreatment === "deducted_from_disbursed" && "Deducted From Disbursed"}
+                          </span>
+                        </div>
+                      )}
+                      {bpi.adjustedFirstEmi !== null && (
+                        <div className="flex justify-between"><span className="text-muted-foreground">Adjusted First EMI</span><span>{formatCurrency(bpi.adjustedFirstEmi)}</span></div>
+                      )}
+                      {bpi.netDisbursed !== null && (
+                        <div className="flex justify-between"><span className="text-muted-foreground">Net Disbursed Amount</span><span>{formatCurrency(bpi.netDisbursed)}</span></div>
+                      )}
+                      <p className="text-xs text-muted-foreground pt-1">
+                        EMI, amortization, and prepayment calculations continue to use the original loan amount.
+                      </p>
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             </>
           )}
 
