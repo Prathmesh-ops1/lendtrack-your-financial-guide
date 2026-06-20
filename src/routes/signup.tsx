@@ -168,7 +168,9 @@ function SignupPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mobile">Mobile number</Label>
+              <Label htmlFor="mobile">
+                Mobile number <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="mobile"
                 type="tel"
