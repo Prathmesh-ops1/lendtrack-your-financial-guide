@@ -41,8 +41,9 @@ function SignupPage() {
       return;
     }
     const mobileValue = mobile.trim();
-    if (mobileValue && !/^[6-9][0-9]{9}$/.test(mobileValue)) {
+    if (!/^[6-9][0-9]{9}$/.test(mobileValue)) {
       setMobileError("Mobile number must be 10 digits and start with 6, 7, 8, or 9.");
+      toast.error("Mobile number must be 10 digits and start with 6, 7, 8, or 9.");
       return;
     } else {
       setMobileError(null);
