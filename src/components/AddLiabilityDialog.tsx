@@ -147,6 +147,17 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
       if (p === null || r === null) { setSubmitting(false); return; }
       if (!Number.isInteger(t) || t < 1) { setSubmitting(false); return toast.error("Tenure must be at least 1 month."); }
       if (!startDate) { setSubmitting(false); return toast.error("Please pick an EMI start date."); }
+      if (disbursementDate && new Date(disbursementDate) > new Date(startDate)) {
+        setSubmitting(false); return toast.error("Disbursement Date cannot be later than First EMI Date.");
+      }
+      const bpiPayload = bpi && !bpi.invalid && disbursementDate ? {
+        disbursement_date: disbursementDate,
+        broken_period_days: bpi.days,
+        broken_period_interest: bpi.interest,
+        bpi_treatment: bpiTreatment || null,
+        adjusted_first_emi: bpi.adjustedFirstEmi,
+        net_disbursed_amount: bpi.netDisbursed,
+      } : {};
       ({ error } = await supabase.from("loans").insert({
         user_id: userId,
         bank_name: name.trim(),
@@ -156,6 +167,7 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
         start_date: startDate,
         interest_rate: r,
         tenure_months: t,
+        ...bpiPayload,
       }));
     } else if (kind === "credit_card") {
       const cl = validatePositive("credit limit", creditLimit);
