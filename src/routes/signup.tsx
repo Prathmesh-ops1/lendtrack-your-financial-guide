@@ -174,9 +174,13 @@ function SignupPage() {
               <Input
                 id="mobile"
                 type="tel"
+                inputMode="numeric"
                 autoComplete="tel"
+                required
+                pattern="[6-9][0-9]{9}"
                 value={mobile}
                 maxLength={10}
+                placeholder="10-digit mobile starting with 6-9"
                 onChange={(e) => {
                   const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
                   setMobile(digits);
