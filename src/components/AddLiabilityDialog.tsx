@@ -92,11 +92,32 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
     }
   }, [kind, principal, interestRate, tenureMonths]);
 
+  // Broken Period Interest (BPI) calculation
+  const bpi = (() => {
+    if (kind !== "loan") return null;
+    const p = Number(principal);
+    const r = Number(interestRate);
+    if (!disbursementDate || !startDate) return null;
+    if (!Number.isFinite(p) || p <= 0 || !Number.isFinite(r) || r <= 0) return null;
+    const d1 = new Date(disbursementDate);
+    const d2 = new Date(startDate);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
+    if (d1 > d2) return { invalid: true as const };
+    const days = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+    const interest = (p * r * days) / (365 * 100);
+    const emiNum = Number(amount);
+    const adjustedFirstEmi = bpiTreatment === "added_to_first_emi" && Number.isFinite(emiNum)
+      ? emiNum + interest : null;
+    const netDisbursed = bpiTreatment === "deducted_from_disbursed" ? p - interest : null;
+    return { invalid: false as const, days, interest, adjustedFirstEmi, netDisbursed };
+  })();
+
   function reset() {
     setName(""); setAmount(""); setDueDay("5");
     setPrincipal(""); setStartDate(""); setInterestRate(""); setTenureMonths("");
     setCreditLimit(""); setCardInterestRate("");
     setSumAssured(""); setPolicyStartDate(""); setPolicyTermYears("");
+    setAdvancedOpen(false); setDisbursementDate(""); setBpiTreatment("");
   }
 
   function validatePositive(label: string, raw: string): number | null {
