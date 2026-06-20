@@ -60,6 +60,11 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
   const [interestRate, setInterestRate] = useState("");
   const [tenureMonths, setTenureMonths] = useState("");
 
+  // Loan BPI (advanced)
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [disbursementDate, setDisbursementDate] = useState("");
+  const [bpiTreatment, setBpiTreatment] = useState<"" | "separate" | "added_to_first_emi" | "deducted_from_disbursed">("");
+
   // Credit card-specific
   const [creditLimit, setCreditLimit] = useState("");
   const [cardInterestRate, setCardInterestRate] = useState("");
