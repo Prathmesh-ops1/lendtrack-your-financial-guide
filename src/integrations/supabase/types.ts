@@ -151,14 +151,20 @@ export type Database = {
       }
       loans: {
         Row: {
+          adjusted_first_emi: number | null
           bank_name: string
+          bpi_treatment: string | null
+          broken_period_days: number | null
+          broken_period_interest: number | null
           created_at: string
+          disbursement_date: string | null
           due_day: number
           emi_amount: number
           id: string
           interest_rate: number | null
           last_paid_date: string | null
           last_paid_for_month: string | null
+          net_disbursed_amount: number | null
           principal_amount: number | null
           start_date: string | null
           tenure_months: number | null
@@ -166,14 +172,20 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          adjusted_first_emi?: number | null
           bank_name: string
+          bpi_treatment?: string | null
+          broken_period_days?: number | null
+          broken_period_interest?: number | null
           created_at?: string
+          disbursement_date?: string | null
           due_day: number
           emi_amount: number
           id?: string
           interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          net_disbursed_amount?: number | null
           principal_amount?: number | null
           start_date?: string | null
           tenure_months?: number | null
@@ -181,14 +193,20 @@ export type Database = {
           user_id: string
         }
         Update: {
+          adjusted_first_emi?: number | null
           bank_name?: string
+          bpi_treatment?: string | null
+          broken_period_days?: number | null
+          broken_period_interest?: number | null
           created_at?: string
+          disbursement_date?: string | null
           due_day?: number
           emi_amount?: number
           id?: string
           interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          net_disbursed_amount?: number | null
           principal_amount?: number | null
           start_date?: string | null
           tenure_months?: number | null
