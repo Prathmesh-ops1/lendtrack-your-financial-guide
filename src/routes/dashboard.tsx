@@ -66,7 +66,7 @@ function Dashboard() {
     const [l, c, i, b, p] = await Promise.all([
       supabase
         .from("loans")
-        .select("id, bank_name, emi_amount, due_day, last_paid_for_month")
+        .select("id, bank_name, emi_amount, due_day, last_paid_for_month, adjusted_first_emi, bpi_treatment")
         .order("due_day"),
       supabase
         .from("credit_cards")
@@ -79,7 +79,23 @@ function Dashboard() {
       supabase.from("balances").select("amount").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("first_name").eq("user_id", user.id).maybeSingle(),
     ]);
-    if (l.data) setLoans(l.data as RawLoan[]);
+    if (l.data) {
+      // Apply Broken Period Interest: if the loan's first EMI hasn't been paid yet
+      // and BPI treatment is "added_to_first_emi", surface the adjusted first EMI
+      // for upcoming/paid display. Underlying emi_amount in DB is untouched.
+      const mapped = (l.data as Array<RawLoan & { adjusted_first_emi?: number | null; bpi_treatment?: string | null }>).map((row) => {
+        if (
+          !row.last_paid_for_month &&
+          row.bpi_treatment === "added_to_first_emi" &&
+          row.adjusted_first_emi != null &&
+          Number(row.adjusted_first_emi) > 0
+        ) {
+          return { ...row, emi_amount: Number(row.adjusted_first_emi) } as RawLoan;
+        }
+        return row as RawLoan;
+      });
+      setLoans(mapped);
+    }
     if (c.data) setCards(c.data as RawCard[]);
     if (i.data) setInsurance(i.data as RawInsurance[]);
     setBalance(Number(b.data?.amount ?? 0));
