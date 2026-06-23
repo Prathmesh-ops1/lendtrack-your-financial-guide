@@ -376,6 +376,10 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                       <div className="flex justify-between"><span className="text-muted-foreground">Interest Rate</span><span>{interestRate}% p.a.</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Disbursement Date</span><span>{disbursementDate}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">First EMI Date</span><span>{startDate}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Regular EMI</span><span>{formatCurrency(Number(amount) || 0)}</span></div>
+                      {bpi.adjustedFirstEmi !== null && (
+                        <div className="flex justify-between"><span className="text-muted-foreground">Adjusted First EMI</span><span>{formatCurrency(bpi.adjustedFirstEmi)}</span></div>
+                      )}
                       <div className="flex justify-between"><span className="text-muted-foreground">Broken Period Days</span><span>{bpi.days}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Broken Period Interest</span><span>{formatCurrency(bpi.interest)}</span></div>
                       {bpiTreatment && (
@@ -388,14 +392,11 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                           </span>
                         </div>
                       )}
-                      {bpi.adjustedFirstEmi !== null && (
-                        <div className="flex justify-between"><span className="text-muted-foreground">Adjusted First EMI</span><span>{formatCurrency(bpi.adjustedFirstEmi)}</span></div>
-                      )}
                       {bpi.netDisbursed !== null && (
                         <div className="flex justify-between"><span className="text-muted-foreground">Net Disbursed Amount</span><span>{formatCurrency(bpi.netDisbursed)}</span></div>
                       )}
                       <p className="text-xs text-muted-foreground pt-1">
-                        EMI, amortization, and prepayment calculations continue to use the original loan amount.
+                        EMI, amortization, outstanding principal, interest, prepayment, and foreclosure calculations continue to use the original EMI and original loan amount.
                       </p>
                     </div>
                   )}
