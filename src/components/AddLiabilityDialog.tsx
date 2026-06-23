@@ -300,7 +300,7 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="start">EMI start date <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="start">First EMI Date <span className="text-destructive">*</span></Label>
                   <Input
                     id="start" type="date"
                     value={startDate} onChange={(e) => setStartDate(e.target.value)}
