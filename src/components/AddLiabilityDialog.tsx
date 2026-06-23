@@ -322,7 +322,15 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                     type="button"
                     className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted/40"
                   >
-                    <span>Advanced Loan Settings</span>
+                    <span className="flex items-center gap-1.5">
+                      Advanced Loan Settings (BPI)
+                      <Info
+                        className="h-3.5 w-3.5 text-muted-foreground"
+                        aria-label="Broken Period Interest (BPI) is the interest charged between the loan disbursement date and the first EMI date."
+                      >
+                        <title>Broken Period Interest (BPI) is the interest charged between the loan disbursement date and the first EMI date.</title>
+                      </Info>
+                    </span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
                   </button>
                 </CollapsibleTrigger>
