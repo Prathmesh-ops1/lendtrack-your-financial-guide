@@ -104,6 +104,7 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
     if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
     if (d1 > d2) return { invalid: true as const };
     const days = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return null;
     const interest = (p * r * days) / (365 * 100);
     const emiNum = Number(amount);
     const adjustedFirstEmi = bpiTreatment === "added_to_first_emi" && Number.isFinite(emiNum)
