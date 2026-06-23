@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Info } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -104,6 +104,7 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
     if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return null;
     if (d1 > d2) return { invalid: true as const };
     const days = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return null;
     const interest = (p * r * days) / (365 * 100);
     const emiNum = Number(amount);
     const adjustedFirstEmi = bpiTreatment === "added_to_first_emi" && Number.isFinite(emiNum)
@@ -299,7 +300,7 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="start">EMI start date <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="start">First EMI Date <span className="text-destructive">*</span></Label>
                   <Input
                     id="start" type="date"
                     value={startDate} onChange={(e) => setStartDate(e.target.value)}
@@ -321,7 +322,15 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                     type="button"
                     className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted/40"
                   >
-                    <span>Advanced Loan Settings</span>
+                    <span className="flex items-center gap-1.5">
+                      Advanced Loan Settings (BPI)
+                      <Info
+                        className="h-3.5 w-3.5 text-muted-foreground"
+                        aria-label="Broken Period Interest (BPI) is the interest charged between the loan disbursement date and the first EMI date."
+                      >
+                        <title>Broken Period Interest (BPI) is the interest charged between the loan disbursement date and the first EMI date.</title>
+                      </Info>
+                    </span>
                     <ChevronDown className={`h-4 w-4 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
                   </button>
                 </CollapsibleTrigger>
@@ -367,6 +376,10 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                       <div className="flex justify-between"><span className="text-muted-foreground">Interest Rate</span><span>{interestRate}% p.a.</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Disbursement Date</span><span>{disbursementDate}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">First EMI Date</span><span>{startDate}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Regular EMI</span><span>{formatCurrency(Number(amount) || 0)}</span></div>
+                      {bpi.adjustedFirstEmi !== null && (
+                        <div className="flex justify-between"><span className="text-muted-foreground">Adjusted First EMI</span><span>{formatCurrency(bpi.adjustedFirstEmi)}</span></div>
+                      )}
                       <div className="flex justify-between"><span className="text-muted-foreground">Broken Period Days</span><span>{bpi.days}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Broken Period Interest</span><span>{formatCurrency(bpi.interest)}</span></div>
                       {bpiTreatment && (
@@ -379,14 +392,11 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                           </span>
                         </div>
                       )}
-                      {bpi.adjustedFirstEmi !== null && (
-                        <div className="flex justify-between"><span className="text-muted-foreground">Adjusted First EMI</span><span>{formatCurrency(bpi.adjustedFirstEmi)}</span></div>
-                      )}
                       {bpi.netDisbursed !== null && (
                         <div className="flex justify-between"><span className="text-muted-foreground">Net Disbursed Amount</span><span>{formatCurrency(bpi.netDisbursed)}</span></div>
                       )}
                       <p className="text-xs text-muted-foreground pt-1">
-                        EMI, amortization, and prepayment calculations continue to use the original loan amount.
+                        EMI, amortization, outstanding principal, interest, prepayment, and foreclosure calculations continue to use the original EMI and original loan amount.
                       </p>
                     </div>
                   )}
