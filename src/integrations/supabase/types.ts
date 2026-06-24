@@ -123,28 +123,34 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          gst_pct: number | null
           id: string
           loan_id: string
           note: string | null
           paid_date: string
+          part_payment_charge_pct: number | null
           user_id: string
         }
         Insert: {
           amount: number
           created_at?: string
+          gst_pct?: number | null
           id?: string
           loan_id: string
           note?: string | null
           paid_date?: string
+          part_payment_charge_pct?: number | null
           user_id: string
         }
         Update: {
           amount?: number
           created_at?: string
+          gst_pct?: number | null
           id?: string
           loan_id?: string
           note?: string | null
           paid_date?: string
+          part_payment_charge_pct?: number | null
           user_id?: string
         }
         Relationships: []
