@@ -133,10 +133,14 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const amt = Number(amount);
-    const day = Number(dueDay);
+    // For loans, derive due day from First EMI Date; otherwise use the input
+    const day = kind === "loan"
+      ? (startDate ? new Date(startDate).getDate() : NaN)
+      : Number(dueDay);
     if (!name.trim()) return toast.error("Please enter a name.");
     if (!Number.isFinite(amt) || amt < 0) return toast.error("Enter a valid amount.");
-    if (!Number.isInteger(day) || day < 1 || day > 31) return toast.error("Due day must be 1–31.");
+    if (kind !== "loan" && (!Number.isInteger(day) || day < 1 || day > 31)) return toast.error("Due day must be 1–31.");
+
 
     setSubmitting(true);
     let error;
@@ -251,7 +255,7 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className={kind === "loan" ? "" : "grid grid-cols-2 gap-3"}>
             <div className="space-y-2">
               <Label htmlFor="amount">
                 {cfg.amountLabel} <span className="text-destructive">*</span>
@@ -269,14 +273,17 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                 </p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
-              <Input
-                id="due" type="number" min="1" max="31"
-                value={dueDay} onChange={(e) => setDueDay(e.target.value)}
-              />
-            </div>
+            {kind !== "loan" && (
+              <div className="space-y-2">
+                <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
+                <Input
+                  id="due" type="number" min="1" max="31"
+                  value={dueDay} onChange={(e) => setDueDay(e.target.value)}
+                />
+              </div>
+            )}
           </div>
+
 
           {kind === "loan" && (
             <>
