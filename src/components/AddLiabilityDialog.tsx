@@ -255,7 +255,7 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className={kind === "loan" ? "" : "grid grid-cols-2 gap-3"}>
             <div className="space-y-2">
               <Label htmlFor="amount">
                 {cfg.amountLabel} <span className="text-destructive">*</span>
@@ -273,14 +273,17 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                 </p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
-              <Input
-                id="due" type="number" min="1" max="31"
-                value={dueDay} onChange={(e) => setDueDay(e.target.value)}
-              />
-            </div>
+            {kind !== "loan" && (
+              <div className="space-y-2">
+                <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
+                <Input
+                  id="due" type="number" min="1" max="31"
+                  value={dueDay} onChange={(e) => setDueDay(e.target.value)}
+                />
+              </div>
+            )}
           </div>
+
 
           {kind === "loan" && (
             <>
