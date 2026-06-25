@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Trash2, Wallet2 } from "lucide-react";
+import { Pencil, Trash2, Wallet2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/finance";
 import { AddLiabilityDialog } from "@/components/AddLiabilityDialog";
 import { EditLiabilityDialog, type EditKind } from "@/components/EditLiabilityDialog";
 import { PrepaymentsDialog } from "@/components/PrepaymentsDialog";
+import { ForeclosureDialog } from "@/components/ForeclosureDialog";
 import {
   AlertDialog,
   AlertDialogAction,
