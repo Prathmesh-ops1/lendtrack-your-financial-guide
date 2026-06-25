@@ -119,6 +119,68 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_foreclosures: {
+        Row: {
+          charge_pct: number
+          created_at: string
+          fixed_fee: number
+          gst_amount: number
+          gst_pct: number
+          id: string
+          interest_saved: number
+          loan_id: string
+          notes: string | null
+          outstanding_principal: number
+          pct_charges: number
+          total_charges: number
+          total_payable: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          charge_pct?: number
+          created_at?: string
+          fixed_fee?: number
+          gst_amount?: number
+          gst_pct?: number
+          id?: string
+          interest_saved?: number
+          loan_id: string
+          notes?: string | null
+          outstanding_principal?: number
+          pct_charges?: number
+          total_charges?: number
+          total_payable?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          charge_pct?: number
+          created_at?: string
+          fixed_fee?: number
+          gst_amount?: number
+          gst_pct?: number
+          id?: string
+          interest_saved?: number
+          loan_id?: string
+          notes?: string | null
+          outstanding_principal?: number
+          pct_charges?: number
+          total_charges?: number
+          total_payable?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_foreclosures_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loan_prepayments: {
         Row: {
           amount: number
