@@ -40,6 +40,7 @@ export function ManageList({ kind, title, icon: Icon, userId, refreshKey, onChan
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState<string | null>(null);
   const [prepayFor, setPrepayFor] = useState<{ id: string; label: string } | null>(null);
+  const [foreclosureFor, setForeclosureFor] = useState<{ id: string; label: string } | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   async function load() {
