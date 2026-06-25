@@ -138,12 +138,20 @@ export function ManageList({ kind, title, icon: Icon, userId, refreshKey, onChan
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {kind === "loan" && (
-                    <Button
-                      size="icon" variant="ghost" title="Prepayments"
-                      onClick={() => setPrepayFor({ id: r.id, label: r.primary })}
-                    >
-                      <Wallet2 className="h-4 w-4" />
-                    </Button>
+                    <>
+                      <Button
+                        size="icon" variant="ghost" title="Prepayments"
+                        onClick={() => setPrepayFor({ id: r.id, label: r.primary })}
+                      >
+                        <Wallet2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon" variant="ghost" title="Foreclosure Calculator"
+                        onClick={() => setForeclosureFor({ id: r.id, label: r.primary })}
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                   <Button
                     size="icon" variant="ghost" title="Edit"
