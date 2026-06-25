@@ -196,6 +196,15 @@ export function ManageList({ kind, title, icon: Icon, userId, refreshKey, onChan
         />
       )}
 
+      {foreclosureFor && (
+        <ForeclosureDialog
+          loanId={foreclosureFor.id}
+          loanLabel={foreclosureFor.label}
+          open={!!foreclosureFor}
+          onOpenChange={(o) => !o && setForeclosureFor(null)}
+        />
+      )}
+
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
