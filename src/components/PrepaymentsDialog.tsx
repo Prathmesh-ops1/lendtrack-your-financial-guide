@@ -14,7 +14,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatCurrency, formatDate } from "@/lib/finance";
-import { Trash2, AlertTriangle } from "lucide-react";
+import { Trash2, AlertTriangle, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+function formatDMY(d: Date): string {
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${dd}-${months[d.getMonth()]}-${d.getFullYear()}`;
+}
 
 interface Prepayment {
   id: string;
@@ -292,9 +299,9 @@ export function PrepaymentsDialog({
 
         {projection && (
           <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
-            <div className="mb-1 font-semibold">Outstanding as of {formatDate(new Date(paidDate))}</div>
+            <div className="mb-1 font-semibold">Outstanding Principal (as on {formatDMY(new Date(paidDate))})</div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Outstanding Principal</span>
+              <span className="text-muted-foreground">Amount</span>
               <span className="font-semibold tabular-nums">{formatCurrency(projection.outstandingNow)}</span>
             </div>
           </div>
@@ -354,7 +361,22 @@ export function PrepaymentsDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Recalculation Method</Label>
+            <Label className="flex items-center gap-1.5">
+              Recalculation Method
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-label="Recalculation method info" className="text-muted-foreground hover:text-foreground">
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="mb-1"><strong>Keep EMI Same → Reduce Tenure:</strong> Your monthly EMI stays the same, but the loan finishes earlier.</p>
+                    <p><strong>Keep Tenure Same → Reduce EMI:</strong> The closure date stays the same, but each future EMI is lower.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
             <RadioGroup
               value={recalcMethod}
               onValueChange={(v) => setRecalcMethod(v as RecalcMethod)}
@@ -400,9 +422,13 @@ export function PrepaymentsDialog({
             <div className="rounded-md border border-border/60 bg-background p-3 text-sm space-y-1">
               <div className="font-semibold">Prepayment Summary</div>
               <div className="flex justify-between"><span className="text-muted-foreground">Prepayment Amount</span><span>{formatCurrency(Number(amount))}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Part Payment Charges</span><span>{formatCurrency(projection.charges)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span>{formatCurrency(projection.gstAmount)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Charge Collection</span><span>{chargeMethod === "deduct" ? "Deducted from amount" : "Paid separately"}</span></div>
+              {(projection.charges > 0 || projection.gstAmount > 0) && (
+                <>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Part Payment Charges</span><span>{formatCurrency(projection.charges)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span>{formatCurrency(projection.gstAmount)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Charge Collection</span><span>{chargeMethod === "deduct" ? "Deducted from amount" : "Paid separately"}</span></div>
+                </>
+              )}
               <div className="flex justify-between font-medium"><span>Net Principal Reduced</span><span>{formatCurrency(projection.netPrincipalReduced)}</span></div>
               {projection.scenario && (
                 <>
@@ -414,7 +440,7 @@ export function PrepaymentsDialog({
                   <div className="my-1 border-t border-border/60" />
                   {recalcMethod === "reduce_tenure" ? (
                     <>
-                      <div className="flex justify-between"><span className="text-muted-foreground">EMI (unchanged)</span><span>{formatCurrency(projection.scenario.newEmi)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">EMI (Unchanged)</span><span>{formatCurrency(projection.scenario.newEmi)}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">New Tenure</span><span>{projection.scenario.newTenureMonths} months</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">New Closure Date</span><span>{formatDate(projection.scenario.newClosureDate)}</span></div>
                       {projection.scenario.monthsSaved > 0 && (
@@ -425,9 +451,8 @@ export function PrepaymentsDialog({
                     </>
                   ) : (
                     <>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Tenure (unchanged)</span><span>{projection.scenario.newTenureMonths} months</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Tenure (Unchanged)</span><span>{projection.scenario.newTenureMonths} months</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">New EMI</span><span>{formatCurrency(projection.scenario.newEmi)}</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">New Closure Date</span><span>{formatDate(projection.scenario.newClosureDate)}</span></div>
                     </>
                   )}
                 </>
