@@ -361,7 +361,22 @@ export function PrepaymentsDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Recalculation Method</Label>
+            <Label className="flex items-center gap-1.5">
+              Recalculation Method
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-label="Recalculation method info" className="text-muted-foreground hover:text-foreground">
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="mb-1"><strong>Keep EMI Same → Reduce Tenure:</strong> Your monthly EMI stays the same, but the loan finishes earlier.</p>
+                    <p><strong>Keep Tenure Same → Reduce EMI:</strong> The closure date stays the same, but each future EMI is lower.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
             <RadioGroup
               value={recalcMethod}
               onValueChange={(v) => setRecalcMethod(v as RecalcMethod)}
