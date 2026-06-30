@@ -144,8 +144,8 @@ export function PrepaymentsDialog({
     if (isNaN(start.getTime())) return null;
 
     const prepayDate = paidDate ? new Date(paidDate) : new Date();
-    // Existing prepayments PRIOR to selected prepay date (offsets from loan start)
-    const priorExisting = items
+    // Existing prepayments on/before the selected prepay date (offsets from loan start)
+    const priorExistingAll = items
       .filter((p) => new Date(p.paid_date) <= prepayDate)
       .map((p) => ({
         monthOffset: Math.max(1, monthsBetween(start, new Date(p.paid_date)) + 1),
@@ -153,9 +153,14 @@ export function PrepaymentsDialog({
       }));
 
     const monthsAtPrepay = Math.min(tenure, monthsBetween(start, prepayDate));
-    // Outstanding as of the selected prepayment date
-    const nowSim = simulate(principal, rate, emi, priorExisting, monthsAtPrepay);
-    const outstandingNow = nowSim.balance;
+    // Simulate EMI schedule up to today; apply prepayments inside the loop window,
+    // then subtract any prepayments dated on/before today but past the loop cursor.
+    const inLoop = priorExistingAll.filter((p) => p.monthOffset <= monthsAtPrepay);
+    const notYetApplied = priorExistingAll
+      .filter((p) => p.monthOffset > monthsAtPrepay)
+      .reduce((s, p) => s + p.amount, 0);
+    const nowSim = simulate(principal, rate, emi, inLoop, monthsAtPrepay);
+    const outstandingNow = Math.max(0, nowSim.balance - notYetApplied);
 
     // Baseline: no new prepayment, continue with current EMI
     const baseline = simulate(outstandingNow, rate, emi, [], undefined);
