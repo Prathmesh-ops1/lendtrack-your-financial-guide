@@ -158,12 +158,18 @@ export function ForeclosureDialog({ loanId, loanLabel, open, onOpenChange }: Pro
 
     const today = new Date();
     const monthsElapsed = Math.min(tenure, monthsBetween(start, today));
-    const existing = prepayments.map((p) => ({
-      monthOffset: Math.max(1, monthsBetween(start, new Date(p.paid_date)) + 1),
-      amount: Number(p.amount),
-    }));
-    const nowSim = simulate(principal, rate, emi, existing, monthsElapsed);
-    const outstanding = nowSim.balance;
+    const existingAll = prepayments
+      .filter((p) => new Date(p.paid_date) <= today)
+      .map((p) => ({
+        monthOffset: Math.max(1, monthsBetween(start, new Date(p.paid_date)) + 1),
+        amount: Number(p.amount),
+      }));
+    const inLoop = existingAll.filter((p) => p.monthOffset <= monthsElapsed);
+    const notYetApplied = existingAll
+      .filter((p) => p.monthOffset > monthsElapsed)
+      .reduce((s, p) => s + p.amount, 0);
+    const nowSim = simulate(principal, rate, emi, inLoop, monthsElapsed);
+    const outstanding = Math.max(0, nowSim.balance - notYetApplied);
 
     const baseline = simulate(outstanding, rate, emi, [], undefined);
     const interestSaved = baseline.totalInterest;
