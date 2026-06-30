@@ -299,9 +299,9 @@ export function PrepaymentsDialog({
 
         {projection && (
           <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
-            <div className="mb-1 font-semibold">Outstanding as of {formatDate(new Date(paidDate))}</div>
+            <div className="mb-1 font-semibold">Outstanding Principal (as on {formatDMY(new Date(paidDate))})</div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Outstanding Principal</span>
+              <span className="text-muted-foreground">Amount</span>
               <span className="font-semibold tabular-nums">{formatCurrency(projection.outstandingNow)}</span>
             </div>
           </div>
