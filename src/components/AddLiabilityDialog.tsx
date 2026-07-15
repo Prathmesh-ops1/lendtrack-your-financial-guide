@@ -123,7 +123,8 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
   function reset() {
     setName(""); setAmount(""); setDueDay("5");
     setPrincipal(""); setStartDate(""); setInterestRate(""); setTenureMonths("");
-    setCreditLimit(""); setCardInterestRate("");
+    setCardName(""); setCreditLimit(""); setCardInterestRate("");
+    setStatementDay(""); setMinAmountDue(""); setAutoPay(false); setCcNotes("");
     setSumAssured(""); setPolicyStartDate(""); setPolicyTermYears("");
     setAdvancedOpen(false); setDisbursementDate(""); setBpiTreatment("");
   }
