@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { Plus, ChevronDown, Info } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/finance";
@@ -66,8 +68,13 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
   const [bpiTreatment, setBpiTreatment] = useState<"" | "separate" | "added_to_first_emi" | "deducted_from_disbursed">("");
 
   // Credit card-specific
+  const [cardName, setCardName] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
   const [cardInterestRate, setCardInterestRate] = useState("");
+  const [statementDay, setStatementDay] = useState("");
+  const [minAmountDue, setMinAmountDue] = useState("");
+  const [autoPay, setAutoPay] = useState(false);
+  const [ccNotes, setCcNotes] = useState("");
 
   // Insurance-specific
   const [sumAssured, setSumAssured] = useState("");
@@ -116,7 +123,8 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
   function reset() {
     setName(""); setAmount(""); setDueDay("5");
     setPrincipal(""); setStartDate(""); setInterestRate(""); setTenureMonths("");
-    setCreditLimit(""); setCardInterestRate("");
+    setCardName(""); setCreditLimit(""); setCardInterestRate("");
+    setStatementDay(""); setMinAmountDue(""); setAutoPay(false); setCcNotes("");
     setSumAssured(""); setPolicyStartDate(""); setPolicyTermYears("");
     setAdvancedOpen(false); setDisbursementDate(""); setBpiTreatment("");
   }
@@ -176,15 +184,33 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
       }));
     } else if (kind === "credit_card") {
       const cl = validatePositive("credit limit", creditLimit);
-      const cr = validatePositive("interest rate", cardInterestRate);
-      if (cl === null || cr === null) { setSubmitting(false); return; }
+      if (cl === null) { setSubmitting(false); return; }
+      if (!cl || cl <= 0) { setSubmitting(false); return toast.error("Credit limit must be greater than 0."); }
+      if (amt > cl) { setSubmitting(false); return toast.error("Outstanding amount cannot exceed credit limit."); }
+      const stDay = Number(statementDay);
+      if (!Number.isInteger(stDay) || stDay < 1 || stDay > 31) {
+        setSubmitting(false); return toast.error("Statement day must be 1–31.");
+      }
+      const cr = cardInterestRate.trim() ? Number(cardInterestRate) : null;
+      if (cr !== null && (!Number.isFinite(cr) || cr < 0)) {
+        setSubmitting(false); return toast.error("Enter a valid interest rate.");
+      }
+      const mad = minAmountDue.trim() ? Number(minAmountDue) : null;
+      if (mad !== null && (!Number.isFinite(mad) || mad < 0)) {
+        setSubmitting(false); return toast.error("Enter a valid minimum amount due.");
+      }
       ({ error } = await supabase.from("credit_cards").insert({
         user_id: userId,
         bank_name: name.trim(),
+        card_name: cardName.trim() || null,
         outstanding_amount: amt,
         due_day: day,
+        statement_day: stDay,
         credit_limit: cl,
         interest_rate: cr,
+        min_amount_due: mad,
+        auto_pay_enabled: autoPay,
+        notes: ccNotes.trim() || null,
       }));
     } else {
       const sa = validatePositive("sum assured", sumAssured);
@@ -273,9 +299,18 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                 </p>
               )}
             </div>
-            {kind !== "loan" && (
+            {kind === "insurance" && (
               <div className="space-y-2">
                 <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
+                <Input
+                  id="due" type="number" min="1" max="31"
+                  value={dueDay} onChange={(e) => setDueDay(e.target.value)}
+                />
+              </div>
+            )}
+            {kind === "credit_card" && (
+              <div className="space-y-2">
+                <Label htmlFor="due">Payment due day <span className="text-destructive">*</span></Label>
                 <Input
                   id="due" type="number" min="1" max="31"
                   value={dueDay} onChange={(e) => setDueDay(e.target.value)}
@@ -413,24 +448,113 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
           )}
 
           {kind === "credit_card" && (
-            <div className="grid grid-cols-2 gap-3">
+            <>
               <div className="space-y-2">
-                <Label htmlFor="limit">Credit limit <span className="text-destructive">*</span></Label>
+                <Label htmlFor="cardname">Card name <span className="text-destructive">*</span></Label>
                 <Input
-                  id="limit" type="number" inputMode="decimal" min="0" step="0.01"
-                  value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)}
-                  placeholder="e.g. 200000"
+                  id="cardname"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  placeholder="e.g. HDFC Millennia, Amazon Pay ICICI"
+                  maxLength={80}
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="limit">Credit limit <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="limit" type="number" inputMode="decimal" min="0" step="0.01"
+                    value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)}
+                    placeholder="e.g. 200000"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="statementday">Statement day <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="statementday" type="number" min="1" max="31"
+                    value={statementDay} onChange={(e) => setStatementDay(e.target.value)}
+                    placeholder="e.g. 15"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="cardrate">Interest rate (% p.a.)</Label>
+                  <Input
+                    id="cardrate" type="number" inputMode="decimal" min="0" step="0.01"
+                    value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)}
+                    placeholder="e.g. 36"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mindue">Minimum amount due</Label>
+                  <Input
+                    id="mindue" type="number" inputMode="decimal" min="0" step="0.01"
+                    value={minAmountDue} onChange={(e) => setMinAmountDue(e.target.value)}
+                    placeholder="e.g. 500"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <Label htmlFor="autopay" className="cursor-pointer">Auto Pay enabled</Label>
+                  <p className="text-xs text-muted-foreground">Payment auto-debited on due date.</p>
+                </div>
+                <Switch id="autopay" checked={autoPay} onCheckedChange={setAutoPay} />
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="cardrate">Interest rate (% p.a.) <span className="text-destructive">*</span></Label>
-                <Input
-                  id="cardrate" type="number" inputMode="decimal" min="0" step="0.01"
-                  value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)}
-                  placeholder="e.g. 36"
+                <Label htmlFor="ccnotes">Notes</Label>
+                <Textarea
+                  id="ccnotes" value={ccNotes} onChange={(e) => setCcNotes(e.target.value)}
+                  placeholder="Optional notes about this card"
+                  maxLength={500} rows={2}
                 />
               </div>
-            </div>
+
+              {(() => {
+                const cl = Number(creditLimit);
+                const out = Number(amount);
+                const st = Number(statementDay);
+                const du = Number(dueDay);
+                const valid = Number.isFinite(cl) && cl > 0 && Number.isFinite(out) && out >= 0;
+                if (!valid) return null;
+                const available = Math.max(0, cl - out);
+                const util = cl > 0 ? Math.min(100, (out / cl) * 100) : 0;
+                const today = new Date();
+                const nextFrom = (day: number) => {
+                  if (!Number.isInteger(day) || day < 1 || day > 31) return null;
+                  const y = today.getFullYear();
+                  const m = today.getMonth();
+                  let target = new Date(y, m, Math.min(day, new Date(y, m + 1, 0).getDate()));
+                  if (target < new Date(y, m, today.getDate())) {
+                    const nm = m + 1;
+                    target = new Date(y, nm, Math.min(day, new Date(y, nm + 1, 0).getDate()));
+                  }
+                  return target;
+                };
+                const nextSt = nextFrom(st);
+                const nextDue = nextFrom(du);
+                const daysUntilDue = nextDue
+                  ? Math.ceil((nextDue.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / 86400000)
+                  : null;
+                const status = out <= 0 ? "Paid" : daysUntilDue !== null && daysUntilDue < 0 ? "Overdue" : "Pending";
+                const fmtDate = (d: Date | null) =>
+                  d ? d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
+                return (
+                  <div className="rounded-md bg-muted/40 p-3 text-sm space-y-1">
+                    <div className="font-medium">Card Preview</div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Available Credit</span><span>{formatCurrency(available)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Credit Utilization</span><span>{util.toFixed(1)}%</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Next Statement Date</span><span>{fmtDate(nextSt)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Next Payment Due Date</span><span>{fmtDate(nextDue)}</span></div>
+                    {daysUntilDue !== null && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Days Until Due</span><span>{daysUntilDue}</span></div>
+                    )}
+                    <div className="flex justify-between"><span className="text-muted-foreground">Payment Status</span><span>{status}</span></div>
+                  </div>
+                );
+              })()}
+            </>
           )}
 
           {kind === "insurance" && (

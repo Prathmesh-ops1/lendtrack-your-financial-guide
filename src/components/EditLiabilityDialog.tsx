@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -39,8 +41,13 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
   const [tenureMonths, setTenureMonths] = useState("");
 
   // Card
+  const [cardName, setCardName] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
   const [cardInterestRate, setCardInterestRate] = useState("");
+  const [statementDay, setStatementDay] = useState("");
+  const [minAmountDue, setMinAmountDue] = useState("");
+  const [autoPay, setAutoPay] = useState(false);
+  const [ccNotes, setCcNotes] = useState("");
 
   // Insurance
   const [sumAssured, setSumAssured] = useState("");
@@ -69,8 +76,13 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
           setName(data.bank_name ?? "");
           setAmount(String(data.outstanding_amount ?? ""));
           setDueDay(String(data.due_day ?? "5"));
+          setCardName(data.card_name ?? "");
           setCreditLimit(data.credit_limit ? String(data.credit_limit) : "");
           setCardInterestRate(data.interest_rate ? String(data.interest_rate) : "");
+          setStatementDay(data.statement_day ? String(data.statement_day) : "");
+          setMinAmountDue(data.min_amount_due ? String(data.min_amount_due) : "");
+          setAutoPay(!!data.auto_pay_enabled);
+          setCcNotes(data.notes ?? "");
         }
       } else {
         const { data } = await supabase.from("insurance").select("*").eq("id", id).maybeSingle();
@@ -114,14 +126,29 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
         })
         .eq("id", id));
     } else if (kind === "credit_card") {
+      const cl = creditLimit ? Number(creditLimit) : null;
+      if (cl !== null && amt > cl) {
+        setSubmitting(false);
+        return toast.error("Outstanding amount cannot exceed credit limit.");
+      }
+      const stDay = statementDay ? Number(statementDay) : null;
+      if (stDay !== null && (!Number.isInteger(stDay) || stDay < 1 || stDay > 31)) {
+        setSubmitting(false);
+        return toast.error("Statement day must be 1–31.");
+      }
       ({ error } = await supabase
         .from("credit_cards")
         .update({
           bank_name: name.trim(),
+          card_name: cardName.trim() || null,
           outstanding_amount: amt,
           due_day: day,
-          credit_limit: creditLimit ? Number(creditLimit) : null,
+          statement_day: stDay,
+          credit_limit: cl,
           interest_rate: cardInterestRate ? Number(cardInterestRate) : null,
+          min_amount_due: minAmountDue ? Number(minAmountDue) : null,
+          auto_pay_enabled: autoPay,
+          notes: ccNotes.trim() || null,
         })
         .eq("id", id));
     } else {
@@ -213,18 +240,49 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
             )}
 
             {kind === "credit_card" && (
-              <div className="grid grid-cols-2 gap-3">
+              <>
                 <div className="space-y-2">
-                  <Label htmlFor="elimit">Credit limit</Label>
-                  <Input id="elimit" type="number" min="0" step="0.01"
-                    value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)} />
+                  <Label htmlFor="ecardname">Card name</Label>
+                  <Input id="ecardname" value={cardName} onChange={(e) => setCardName(e.target.value)}
+                    placeholder="e.g. HDFC Millennia" maxLength={80} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="elimit">Credit limit</Label>
+                    <Input id="elimit" type="number" min="0" step="0.01"
+                      value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="estatement">Statement day</Label>
+                    <Input id="estatement" type="number" min="1" max="31"
+                      value={statementDay} onChange={(e) => setStatementDay(e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="ecrate">Interest rate (% p.a.)</Label>
+                    <Input id="ecrate" type="number" min="0" step="0.01"
+                      value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emindue">Minimum amount due</Label>
+                    <Input id="emindue" type="number" min="0" step="0.01"
+                      value={minAmountDue} onChange={(e) => setMinAmountDue(e.target.value)} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between rounded-md border p-3">
+                  <div>
+                    <Label htmlFor="eautopay" className="cursor-pointer">Auto Pay enabled</Label>
+                    <p className="text-xs text-muted-foreground">Payment auto-debited on due date.</p>
+                  </div>
+                  <Switch id="eautopay" checked={autoPay} onCheckedChange={setAutoPay} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ecrate">Interest rate (% p.a.)</Label>
-                  <Input id="ecrate" type="number" min="0" step="0.01"
-                    value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)} />
+                  <Label htmlFor="eccnotes">Notes</Label>
+                  <Textarea id="eccnotes" value={ccNotes} onChange={(e) => setCcNotes(e.target.value)}
+                    maxLength={500} rows={2} />
                 </div>
-              </div>
+              </>
             )}
 
             {kind === "insurance" && (
