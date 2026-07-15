@@ -34,7 +34,9 @@ export type Database = {
       }
       credit_cards: {
         Row: {
+          auto_pay_enabled: boolean
           bank_name: string
+          card_name: string | null
           created_at: string
           credit_limit: number | null
           due_day: number
@@ -42,12 +44,17 @@ export type Database = {
           interest_rate: number | null
           last_paid_date: string | null
           last_paid_for_month: string | null
+          min_amount_due: number | null
+          notes: string | null
           outstanding_amount: number
+          statement_day: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          auto_pay_enabled?: boolean
           bank_name: string
+          card_name?: string | null
           created_at?: string
           credit_limit?: number | null
           due_day: number
@@ -55,12 +62,17 @@ export type Database = {
           interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          min_amount_due?: number | null
+          notes?: string | null
           outstanding_amount: number
+          statement_day?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          auto_pay_enabled?: boolean
           bank_name?: string
+          card_name?: string | null
           created_at?: string
           credit_limit?: number | null
           due_day?: number
@@ -68,7 +80,10 @@ export type Database = {
           interest_rate?: number | null
           last_paid_date?: string | null
           last_paid_for_month?: string | null
+          min_amount_due?: number | null
+          notes?: string | null
           outstanding_amount?: number
+          statement_day?: number | null
           updated_at?: string
           user_id?: string
         }
