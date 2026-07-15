@@ -448,24 +448,113 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
           )}
 
           {kind === "credit_card" && (
-            <div className="grid grid-cols-2 gap-3">
+            <>
               <div className="space-y-2">
-                <Label htmlFor="limit">Credit limit <span className="text-destructive">*</span></Label>
+                <Label htmlFor="cardname">Card name <span className="text-destructive">*</span></Label>
                 <Input
-                  id="limit" type="number" inputMode="decimal" min="0" step="0.01"
-                  value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)}
-                  placeholder="e.g. 200000"
+                  id="cardname"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  placeholder="e.g. HDFC Millennia, Amazon Pay ICICI"
+                  maxLength={80}
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="limit">Credit limit <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="limit" type="number" inputMode="decimal" min="0" step="0.01"
+                    value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)}
+                    placeholder="e.g. 200000"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="statementday">Statement day <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="statementday" type="number" min="1" max="31"
+                    value={statementDay} onChange={(e) => setStatementDay(e.target.value)}
+                    placeholder="e.g. 15"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="cardrate">Interest rate (% p.a.)</Label>
+                  <Input
+                    id="cardrate" type="number" inputMode="decimal" min="0" step="0.01"
+                    value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)}
+                    placeholder="e.g. 36"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mindue">Minimum amount due</Label>
+                  <Input
+                    id="mindue" type="number" inputMode="decimal" min="0" step="0.01"
+                    value={minAmountDue} onChange={(e) => setMinAmountDue(e.target.value)}
+                    placeholder="e.g. 500"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <Label htmlFor="autopay" className="cursor-pointer">Auto Pay enabled</Label>
+                  <p className="text-xs text-muted-foreground">Payment auto-debited on due date.</p>
+                </div>
+                <Switch id="autopay" checked={autoPay} onCheckedChange={setAutoPay} />
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="cardrate">Interest rate (% p.a.) <span className="text-destructive">*</span></Label>
-                <Input
-                  id="cardrate" type="number" inputMode="decimal" min="0" step="0.01"
-                  value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)}
-                  placeholder="e.g. 36"
+                <Label htmlFor="ccnotes">Notes</Label>
+                <Textarea
+                  id="ccnotes" value={ccNotes} onChange={(e) => setCcNotes(e.target.value)}
+                  placeholder="Optional notes about this card"
+                  maxLength={500} rows={2}
                 />
               </div>
-            </div>
+
+              {(() => {
+                const cl = Number(creditLimit);
+                const out = Number(amount);
+                const st = Number(statementDay);
+                const du = Number(dueDay);
+                const valid = Number.isFinite(cl) && cl > 0 && Number.isFinite(out) && out >= 0;
+                if (!valid) return null;
+                const available = Math.max(0, cl - out);
+                const util = cl > 0 ? Math.min(100, (out / cl) * 100) : 0;
+                const today = new Date();
+                const nextFrom = (day: number) => {
+                  if (!Number.isInteger(day) || day < 1 || day > 31) return null;
+                  const y = today.getFullYear();
+                  const m = today.getMonth();
+                  let target = new Date(y, m, Math.min(day, new Date(y, m + 1, 0).getDate()));
+                  if (target < new Date(y, m, today.getDate())) {
+                    const nm = m + 1;
+                    target = new Date(y, nm, Math.min(day, new Date(y, nm + 1, 0).getDate()));
+                  }
+                  return target;
+                };
+                const nextSt = nextFrom(st);
+                const nextDue = nextFrom(du);
+                const daysUntilDue = nextDue
+                  ? Math.ceil((nextDue.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / 86400000)
+                  : null;
+                const status = out <= 0 ? "Paid" : daysUntilDue !== null && daysUntilDue < 0 ? "Overdue" : "Pending";
+                const fmtDate = (d: Date | null) =>
+                  d ? d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
+                return (
+                  <div className="rounded-md bg-muted/40 p-3 text-sm space-y-1">
+                    <div className="font-medium">Card Preview</div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Available Credit</span><span>{formatCurrency(available)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Credit Utilization</span><span>{util.toFixed(1)}%</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Next Statement Date</span><span>{fmtDate(nextSt)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Next Payment Due Date</span><span>{fmtDate(nextDue)}</span></div>
+                    {daysUntilDue !== null && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Days Until Due</span><span>{daysUntilDue}</span></div>
+                    )}
+                    <div className="flex justify-between"><span className="text-muted-foreground">Payment Status</span><span>{status}</span></div>
+                  </div>
+                );
+              })()}
+            </>
           )}
 
           {kind === "insurance" && (
