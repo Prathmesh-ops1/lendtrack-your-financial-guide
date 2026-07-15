@@ -299,9 +299,18 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
                 </p>
               )}
             </div>
-            {kind !== "loan" && (
+            {kind === "insurance" && (
               <div className="space-y-2">
                 <Label htmlFor="due">Due day of month <span className="text-destructive">*</span></Label>
+                <Input
+                  id="due" type="number" min="1" max="31"
+                  value={dueDay} onChange={(e) => setDueDay(e.target.value)}
+                />
+              </div>
+            )}
+            {kind === "credit_card" && (
+              <div className="space-y-2">
+                <Label htmlFor="due">Payment due day <span className="text-destructive">*</span></Label>
                 <Input
                   id="due" type="number" min="1" max="31"
                   value={dueDay} onChange={(e) => setDueDay(e.target.value)}
