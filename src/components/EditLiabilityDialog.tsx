@@ -240,18 +240,49 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
             )}
 
             {kind === "credit_card" && (
-              <div className="grid grid-cols-2 gap-3">
+              <>
                 <div className="space-y-2">
-                  <Label htmlFor="elimit">Credit limit</Label>
-                  <Input id="elimit" type="number" min="0" step="0.01"
-                    value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)} />
+                  <Label htmlFor="ecardname">Card name</Label>
+                  <Input id="ecardname" value={cardName} onChange={(e) => setCardName(e.target.value)}
+                    placeholder="e.g. HDFC Millennia" maxLength={80} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="elimit">Credit limit</Label>
+                    <Input id="elimit" type="number" min="0" step="0.01"
+                      value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="estatement">Statement day</Label>
+                    <Input id="estatement" type="number" min="1" max="31"
+                      value={statementDay} onChange={(e) => setStatementDay(e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="ecrate">Interest rate (% p.a.)</Label>
+                    <Input id="ecrate" type="number" min="0" step="0.01"
+                      value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emindue">Minimum amount due</Label>
+                    <Input id="emindue" type="number" min="0" step="0.01"
+                      value={minAmountDue} onChange={(e) => setMinAmountDue(e.target.value)} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between rounded-md border p-3">
+                  <div>
+                    <Label htmlFor="eautopay" className="cursor-pointer">Auto Pay enabled</Label>
+                    <p className="text-xs text-muted-foreground">Payment auto-debited on due date.</p>
+                  </div>
+                  <Switch id="eautopay" checked={autoPay} onCheckedChange={setAutoPay} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ecrate">Interest rate (% p.a.)</Label>
-                  <Input id="ecrate" type="number" min="0" step="0.01"
-                    value={cardInterestRate} onChange={(e) => setCardInterestRate(e.target.value)} />
+                  <Label htmlFor="eccnotes">Notes</Label>
+                  <Textarea id="eccnotes" value={ccNotes} onChange={(e) => setCcNotes(e.target.value)}
+                    maxLength={500} rows={2} />
                 </div>
-              </div>
+              </>
             )}
 
             {kind === "insurance" && (
