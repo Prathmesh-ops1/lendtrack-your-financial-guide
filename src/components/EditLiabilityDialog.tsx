@@ -76,8 +76,13 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
           setName(data.bank_name ?? "");
           setAmount(String(data.outstanding_amount ?? ""));
           setDueDay(String(data.due_day ?? "5"));
+          setCardName(data.card_name ?? "");
           setCreditLimit(data.credit_limit ? String(data.credit_limit) : "");
           setCardInterestRate(data.interest_rate ? String(data.interest_rate) : "");
+          setStatementDay(data.statement_day ? String(data.statement_day) : "");
+          setMinAmountDue(data.min_amount_due ? String(data.min_amount_due) : "");
+          setAutoPay(!!data.auto_pay_enabled);
+          setCcNotes(data.notes ?? "");
         }
       } else {
         const { data } = await supabase.from("insurance").select("*").eq("id", id).maybeSingle();
