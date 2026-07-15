@@ -126,14 +126,29 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
         })
         .eq("id", id));
     } else if (kind === "credit_card") {
+      const cl = creditLimit ? Number(creditLimit) : null;
+      if (cl !== null && amt > cl) {
+        setSubmitting(false);
+        return toast.error("Outstanding amount cannot exceed credit limit.");
+      }
+      const stDay = statementDay ? Number(statementDay) : null;
+      if (stDay !== null && (!Number.isInteger(stDay) || stDay < 1 || stDay > 31)) {
+        setSubmitting(false);
+        return toast.error("Statement day must be 1–31.");
+      }
       ({ error } = await supabase
         .from("credit_cards")
         .update({
           bank_name: name.trim(),
+          card_name: cardName.trim() || null,
           outstanding_amount: amt,
           due_day: day,
-          credit_limit: creditLimit ? Number(creditLimit) : null,
+          statement_day: stDay,
+          credit_limit: cl,
           interest_rate: cardInterestRate ? Number(cardInterestRate) : null,
+          min_amount_due: minAmountDue ? Number(minAmountDue) : null,
+          auto_pay_enabled: autoPay,
+          notes: ccNotes.trim() || null,
         })
         .eq("id", id));
     } else {
