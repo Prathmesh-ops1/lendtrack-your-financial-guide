@@ -61,15 +61,24 @@ export function ManageList({ kind, title, icon: Icon, userId, refreshKey, onChan
     } else if (kind === "credit_card") {
       const { data } = await supabase
         .from("credit_cards")
-        .select("id, bank_name, outstanding_amount, due_day")
+        .select("id, bank_name, card_name, outstanding_amount, credit_limit, due_day, statement_day, auto_pay_enabled")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       setRows(
-        (data ?? []).map((r: any) => ({
-          id: r.id,
-          primary: r.bank_name,
-          secondary: `Outstanding ${formatCurrency(Number(r.outstanding_amount))} • Day ${r.due_day}`,
-        })),
+        (data ?? []).map((r: any) => {
+          const cl = Number(r.credit_limit ?? 0);
+          const out = Number(r.outstanding_amount ?? 0);
+          const util = cl > 0 ? Math.min(100, (out / cl) * 100) : 0;
+          const primary = r.card_name ? `${r.card_name} · ${r.bank_name}` : r.bank_name;
+          const parts = [
+            `Outstanding ${formatCurrency(out)}`,
+            cl > 0 ? `Util ${util.toFixed(0)}%` : null,
+            r.statement_day ? `Stmt ${r.statement_day}` : null,
+            `Due ${r.due_day}`,
+            r.auto_pay_enabled ? "AutoPay" : null,
+          ].filter(Boolean);
+          return { id: r.id, primary, secondary: parts.join(" • ") };
+        }),
       );
     } else {
       const { data } = await supabase
