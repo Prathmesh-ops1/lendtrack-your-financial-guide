@@ -68,8 +68,13 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
   const [bpiTreatment, setBpiTreatment] = useState<"" | "separate" | "added_to_first_emi" | "deducted_from_disbursed">("");
 
   // Credit card-specific
+  const [cardName, setCardName] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
   const [cardInterestRate, setCardInterestRate] = useState("");
+  const [statementDay, setStatementDay] = useState("");
+  const [minAmountDue, setMinAmountDue] = useState("");
+  const [autoPay, setAutoPay] = useState(false);
+  const [ccNotes, setCcNotes] = useState("");
 
   // Insurance-specific
   const [sumAssured, setSumAssured] = useState("");
