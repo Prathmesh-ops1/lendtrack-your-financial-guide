@@ -184,15 +184,33 @@ export function AddLiabilityDialog({ kind, userId, onSaved }: Props) {
       }));
     } else if (kind === "credit_card") {
       const cl = validatePositive("credit limit", creditLimit);
-      const cr = validatePositive("interest rate", cardInterestRate);
-      if (cl === null || cr === null) { setSubmitting(false); return; }
+      if (cl === null) { setSubmitting(false); return; }
+      if (!cl || cl <= 0) { setSubmitting(false); return toast.error("Credit limit must be greater than 0."); }
+      if (amt > cl) { setSubmitting(false); return toast.error("Outstanding amount cannot exceed credit limit."); }
+      const stDay = Number(statementDay);
+      if (!Number.isInteger(stDay) || stDay < 1 || stDay > 31) {
+        setSubmitting(false); return toast.error("Statement day must be 1–31.");
+      }
+      const cr = cardInterestRate.trim() ? Number(cardInterestRate) : null;
+      if (cr !== null && (!Number.isFinite(cr) || cr < 0)) {
+        setSubmitting(false); return toast.error("Enter a valid interest rate.");
+      }
+      const mad = minAmountDue.trim() ? Number(minAmountDue) : null;
+      if (mad !== null && (!Number.isFinite(mad) || mad < 0)) {
+        setSubmitting(false); return toast.error("Enter a valid minimum amount due.");
+      }
       ({ error } = await supabase.from("credit_cards").insert({
         user_id: userId,
         bank_name: name.trim(),
+        card_name: cardName.trim() || null,
         outstanding_amount: amt,
         due_day: day,
+        statement_day: stDay,
         credit_limit: cl,
         interest_rate: cr,
+        min_amount_due: mad,
+        auto_pay_enabled: autoPay,
+        notes: ccNotes.trim() || null,
       }));
     } else {
       const sa = validatePositive("sum assured", sumAssured);
