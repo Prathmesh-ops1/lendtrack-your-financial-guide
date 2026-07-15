@@ -41,8 +41,13 @@ export function EditLiabilityDialog({ kind, id, open, onOpenChange, onSaved }: P
   const [tenureMonths, setTenureMonths] = useState("");
 
   // Card
+  const [cardName, setCardName] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
   const [cardInterestRate, setCardInterestRate] = useState("");
+  const [statementDay, setStatementDay] = useState("");
+  const [minAmountDue, setMinAmountDue] = useState("");
+  const [autoPay, setAutoPay] = useState(false);
+  const [ccNotes, setCcNotes] = useState("");
 
   // Insurance
   const [sumAssured, setSumAssured] = useState("");
