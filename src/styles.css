@@ -49,9 +49,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --shadow-elegant: 0 10px 40px -12px oklch(0.2 0.05 165 / 0.25);
-  --shadow-card: 0 1px 3px oklch(0.2 0.05 165 / 0.06), 0 4px 16px -4px oklch(0.2 0.05 165 / 0.08);
-  --shadow-glow: 0 0 60px oklch(0.55 0.13 165 / 0.35);
+  --shadow-elegant: 0 10px 40px -12px oklch(0.3 0.12 258 / 0.28);
+  --shadow-card: 0 1px 3px oklch(0.3 0.12 258 / 0.06), 0 4px 16px -4px oklch(0.3 0.12 258 / 0.1);
+  --shadow-glow: 0 0 60px oklch(0.62 0.18 250 / 0.4);
+
 }
 
 :root {
